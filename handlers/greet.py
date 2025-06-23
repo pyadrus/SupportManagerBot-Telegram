@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
+from loguru import logger
 
 from dispatcher import router
 from markups import choose_lang, admin_keyboard
 from middlewares import AdminFilter
-from other import get_logger
-
-# from bot.markups import choose_lang, admin_keyboard
-# from bot.middlewares import AdminFilter
-
-logger = get_logger(__name__)
 
 
 @router.message(CommandStart())
 async def start(message: Message):
+    """Отвечает на команду /start и выводит приветственное сообщение."""
     try:
         logger.info(f'Введена команда /start - {message.chat.id}')
         await message.answer(
@@ -32,3 +28,8 @@ async def admin(message: Message):
                              reply_markup=admin_keyboard())
     except Exception as e:
         logger.error(f"Ошибка /admin: {e} - {message.chat.id}")
+
+
+def register_commands():
+    router.message.register(start)
+    router.message.register(admin)

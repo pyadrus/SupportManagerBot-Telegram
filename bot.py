@@ -6,11 +6,13 @@ from loguru import logger
 
 from database import DataBase
 from dispatcher import dp, bot
+from handlers.greet import register_commands
 
 
 async def on_startup():
     try:
-        await DataBase(filename="database.db").create_tables()
+        async with DataBase(filename="database.db") as db:
+            await db.create_tables()
         bot_data = await bot.get_me()
         logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
     except Exception as e:
@@ -21,19 +23,30 @@ async def on_startup():
 async def on_shutdown():
     try:
         logger.info('Бот остановлен')
+        await bot.session.close()  # Закрытие сессии бота
     except Exception as e:
         logger.exception(f'Ошибка при остановке: {e}')
 
 
 async def main():
     try:
-        logging.getLogger("aiogram.event").setLevel(logging.DEBUG)
-        dp.shutdown.register(on_shutdown)
-        dp.startup.register(on_startup)
+        # Настройка логгирования (если нужно)
+        logging.basicConfig(level=logging.INFO)
 
+        # Регистрация обработчиков старта/завершения
+        dp.startup.register(on_startup)
+        dp.shutdown.register(on_shutdown)
+
+        # Регистрация команд
+        register_commands()
+
+        # Запуск бота
         await dp.start_polling(bot)
+
     except Exception as e:
         logger.exception(f'Ошибка при запуске бота: {e}')
+    finally:
+        await bot.session.close()
 
 
 if __name__ == "__main__":
