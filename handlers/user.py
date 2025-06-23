@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from config import settings
+from config import GROUP_ID
 from database import db
 from dispatcher import router, bot
 from keyboards.keyboards import consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
@@ -97,7 +97,7 @@ async def consent_appeal(call: CallbackQuery, state: FSMContext):
 <b>Телефон:</b> <code>{data['phone']}</code>
 <b>Вопрос:</b> <code>{data['question']}</code>
         """
-        await bot.send_message(settings.GROUP_ID, text, reply_markup=manage_appeal())
+        await bot.send_message(GROUP_ID, text, reply_markup=manage_appeal())
     except Exception as e:
         logger.error(f"Ошибка регистрации обращения: {e} - {call.from_user.id}")
     finally:

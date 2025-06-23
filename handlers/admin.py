@@ -205,3 +205,17 @@ async def client_answer_appeal(message: Message):
     except Exception as e:
         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
         await message.answer("Произошла ошибка, попробуйте ещё раз")
+
+def register_handlers_admin():
+    # --- Callback handlers ---
+    router.callback_query.register(ask_period, F.data == 'statistic', AdminFilter())
+    router.callback_query.register(statistics, F.data.startswith("statistic-"))
+    router.callback_query.register(close_appeal_by_manager, F.data == 'close_appeal_by_manager')  # Если есть такая кнопка
+    router.callback_query.register(set_rating, F.data.startswith("set_rating-"))
+
+    # --- Message handlers (текстовые сообщения) ---
+    router.message.register(manager_answer_appeal, ManagerAppealsFilter(), F.text)
+    router.message.register(client_answer_appeal, UserAppealsFilter(), F.text)
+    router.message.register(close_appeal_by_manager, ManagerAppealsFilter(), F.text.in_([
+        "❌ Закрыть заявку", "❌ Пӯшидани ариза"
+    ]))

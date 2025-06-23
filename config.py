@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
-from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
 
+from dotenv import load_dotenv
 
-class Settings(BaseSettings):
-    TOKEN: str
-    ADMIN: int
-    GROUP_ID: int
-    DB_NAME: str = 'database.db'
-    LOG_TYPE: str = 'console'
+# Загрузка переменных из .env файла
+load_dotenv()
 
-    @field_validator('LOG_TYPE')
-    def check_log_type(cls, v: str):
-        v = v.lower()
-        if v not in ['console', 'file']:
-            raise ValueError("LOG_TYPE должен быть 'console' или 'file'")
-        return v
+# Чтение переменных
+TOKEN = os.getenv("TOKEN")
+LOG_TYPE = os.getenv("LOG_TYPE")
+ADMIN = int(os.getenv("ADMIN"))  # Преобразуем в int
+DB_NAME = os.getenv("DB_NAME")
+GROUP_ID = int(os.getenv("GROUP_ID"))  # Также преобразуем в int
 
-    model_config = SettingsConfigDict(env_file=".env")
-
-
-settings = Settings()
+# Вывод (для проверки)
+print("TOKEN:", TOKEN)
+print("LOG_TYPE:", LOG_TYPE)
+print("ADMIN:", ADMIN)
+print("DB_NAME:", DB_NAME)
+print("GROUP_ID:", GROUP_ID)

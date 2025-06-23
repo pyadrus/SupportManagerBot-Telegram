@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-# from logging import Logger
 from typing import Optional
-# from os import path
 from typing import Union
 
 import aiosqlite
 from loguru import logger
 
-
-# from bot.config import settings
-
-# logger: Logger = get_logger(__name__)
+from config import DB_NAME
 
 
 class DataBase:
@@ -181,4 +176,4 @@ class DataBase:
             return {}
 
 
-db = DataBase(filename="database.db")
+db = DataBase(filename=DB_NAME)

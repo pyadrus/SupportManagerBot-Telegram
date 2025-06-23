@@ -2,7 +2,7 @@
 from aiogram.filters import Filter
 from aiogram.types import Message
 
-from config import settings
+from config import ADMIN
 from database import db
 
 
@@ -10,7 +10,7 @@ class AdminFilter(Filter):
     """Проверка на права админа"""
 
     async def __call__(self, message: Message) -> bool:
-        return True if message.from_user.id == settings.ADMIN else False
+        return True if message.from_user.id == ADMIN else False
 
 
 class ManagerAppealsFilter(Filter):
