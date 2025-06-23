@@ -3,10 +3,14 @@ from aiogram.types import Message, CallbackQuery
 from datetime import datetime, timedelta
 import asyncio
 
-from bot.database import db
-from bot.markups import set_rating, admin_keyboard, stat_period
-from bot.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
-from bot.other import get_logger, bot
+# from database import db
+# from bot.markups import set_rating, admin_keyboard, stat_period
+# from bot.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
+
+from database import DataBase
+from markups import set_rating, stat_period, admin_keyboard
+from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
+from other import get_logger, bot
 
 logger = get_logger(__name__)
 router = Router()
@@ -17,7 +21,7 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, ti
     try:
         while True:
             await asyncio.sleep(5)
-            appeal = await db.get_appeal(id=appeal_id)
+            appeal = await DataBase(filename="database.db").get_appeal(id=appeal_id)
             if not appeal or appeal.get('status_id') != 2:
                 logger.info(f"Таймер закрытия для заявки #{appeal_id} остановлен")
                 break
@@ -30,8 +34,8 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, ti
             elapsed = (datetime.now() - last_msg_dt).total_seconds()
 
             if elapsed >= timeout_seconds:
-                await db.update_appeal_data(appeal_id, status_id=3)
-                lang = await db.get_user_lang(user_id)
+                await DataBase(filename="database.db").update_appeal_data(appeal_id, status_id=3)
+                lang = await DataBase(filename="database.db").get_user_lang(user_id)
                 await bot.send_message(user_id, "Лутфан сифати хидматро арзебӣ кунед, то мо беҳтар шавем" if lang == "tj" else "Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше ✨", reply_markup=set_rating(appeal_id))
                 await bot.send_message(manager_id, f"<b>✅ Обращение закрыто</b>. Вы свободны для принятия новых заявок 👻")
                 logger.info(f"Автоматическое закрытие заявки #{appeal_id} по таймауту")
@@ -69,7 +73,7 @@ async def statistics(call: CallbackQuery):
 
         logger.info(f'Статистика за {period} - {call.from_user.id}')
 
-        appeals_raw = await db.get_appeal()
+        appeals_raw = await DataBase(filename="database.db").get_appeal()
 
         if isinstance(appeals_raw, dict):
             appeals = [appeals_raw] if appeals_raw else []
@@ -122,7 +126,7 @@ async def statistics(call: CallbackQuery):
 
         status_texts = []
         for status_id, count in appeals_statuses.items():
-            status_name = await db.get_status_name(status_id) or f"Статус {status_id}"
+            status_name = await DataBase(filename="database.db").get_status_name(status_id) or f"Статус {status_id}"
             status_texts.append(f"{status_name}: {count}")
         avg_rating = round(sum(ratings_all) / len(ratings_all), 2) if ratings_all else "Нет оценок"
         text = f"📊 <b>Статистика за период:</b> <i>{period} суток</i>\n\n"
@@ -141,13 +145,13 @@ async def statistics(call: CallbackQuery):
 @router.message(F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]), ManagerAppealsFilter())
 async def close_appeal_by_manager(message: Message):
     try:
-        appeal = await db.get_appeal(manager_id=message.from_user.id, status_id=2)
+        appeal = await DataBase(filename="database.db").get_appeal(manager_id=message.from_user.id, status_id=2)
         if not appeal:
             await message.answer("Заявка не найдена")
             return
         await del_close_timer(appeal['id'])
-        await db.update_appeal_data(appeal['id'], status_id=3)
-        lang_client = await db.get_user_lang(appeal['user_id'])
+        await DataBase(filename="database.db").update_appeal_data(appeal['id'], status_id=3)
+        lang_client = await DataBase(filename="database.db").get_user_lang(appeal['user_id'])
         await bot.send_message(appeal['user_id'], "Оператор сӯҳбатро анҷом дод. Ташаккур барои муроҷиат! Лутфан, сифати хизматрасониро баҳо диҳед, то мо беҳтар шавем. ✨" if lang_client == 'tj' else "Оператор завершил чат. Спасибо за обращение! Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше. ✨", reply_markup=set_rating(appeal['id']))
         await message.answer(f"✅ <b>Вы завершили чат</b> Вы свободны для принятия новых заявок 👻")
         logger.info(f'Закрытие обращения - {message.from_user.id}')
@@ -160,10 +164,10 @@ async def manager_answer_appeal(message: Message):
     """Сообщения от операторов"""
     try:
         logger.info(f'Ответ обращению - {message.chat.id}')
-        appeal = await db.get_appeal(manager_id=message.chat.id, status_id=2)
+        appeal = await DataBase(filename="database.db").get_appeal(manager_id=message.chat.id, status_id=2)
         if appeal and isinstance(appeal, dict):
             await bot.send_message(appeal['user_id'], message.text)
-            await db.update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+            await DataBase(filename="database.db").update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
 
             await start_timer(appeal['id'], appeal['user_id'], message.from_user.id)
         else:
@@ -177,12 +181,12 @@ async def client_answer_appeal(message: Message):
     """Сообщения от пользователя"""
     try:
         logger.info(f'Ответ обращению - {message.chat.id}')
-        appeal = await db.get_appeal(user_id=message.chat.id, status_id=2)
+        appeal = await DataBase(filename="database.db").get_appeal(user_id=message.chat.id, status_id=2)
         if appeal and isinstance(appeal, dict):
             if appeal['manager_id']:
                 await start_timer(appeal['id'], message.from_user.id, appeal['manager_id'])
                 await bot.send_message(appeal['manager_id'], message.text)
-                await db.update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+                await DataBase(filename="database.db").update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
             else:
                 await message.answer("Дождитесь оператора")
     except Exception as e:

@@ -1,9 +1,10 @@
 import aiosqlite
-from os import path
+# from os import path
 from typing import Union
 from logging import Logger
+
+# from bot.config import settings
 from other import get_logger
-from bot.config import settings
 from typing import Optional
 
 logger: Logger = get_logger(__name__)
@@ -21,14 +22,8 @@ class DataBase:
             await conn.execute("PRAGMA journal_mode=WAL")
             await conn.execute("PRAGMA synchronous=NORMAL")
             await conn.execute("PRAGMA optimize")
-            await conn.execute("""CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                lang TEXT
-            )""")
-            await conn.execute("""CREATE TABLE IF NOT EXISTS statuses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                status TEXT UNIQUE
-            )""")
+            await conn.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, lang TEXT)""")
+            await conn.execute("""CREATE TABLE IF NOT EXISTS statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT UNIQUE)""")
             await conn.execute("""CREATE TABLE IF NOT EXISTS appeals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -175,4 +170,4 @@ class DataBase:
             return {}
 
 
-db = DataBase(path.join(path.dirname(path.abspath(__file__)), settings.DB_NAME))
+# db = DataBase(filename="database.db")

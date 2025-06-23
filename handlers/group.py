@@ -6,9 +6,9 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from bot.database import db
+from database import db
 from bot.markups import close_appeal
-from bot.other import get_logger, bot
+from other import get_logger, bot
 
 logger = get_logger(__name__)
 router = Router()

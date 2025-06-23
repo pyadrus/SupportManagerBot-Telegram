@@ -2,10 +2,13 @@ from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 
-from bot.markups import choose_lang, admin_keyboard
+# from bot.markups import choose_lang, admin_keyboard
 
-from bot.middlewares import AdminFilter
-from bot.other import get_logger
+# from bot.middlewares import AdminFilter
+
+from markups import choose_lang, admin_keyboard
+from middlewares import AdminFilter
+from other import get_logger
 
 logger = get_logger(__name__)
 router = Router()

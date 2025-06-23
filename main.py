@@ -8,7 +8,7 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 # Команды с указанием PYTHONPATH
 commands = [
     # [sys.executable, "app/app.py"],  # запускает приложение
-    [sys.executable, "bot/bot.py"],  # запускает бота
+    [sys.executable, "bot.py"],  # запускает бота
     # [
     #     "tuna",
     #     "http",

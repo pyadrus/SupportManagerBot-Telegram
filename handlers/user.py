@@ -6,9 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from bot.config import settings
-from bot.database import db
+from database import db
 from bot.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
-from bot.other import get_logger, bot
+from other import get_logger, bot
 from bot.states import StartAppealStates
 
 logger = get_logger(__name__)
