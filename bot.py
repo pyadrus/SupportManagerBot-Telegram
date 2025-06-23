@@ -8,6 +8,7 @@ from database import db
 from dispatcher import dp, bot
 from handlers.admin import register_handlers_admin
 from handlers.greet import register_commands
+from handlers.group import register_manager_handlers_group
 from handlers.user import register_user_handler
 
 
@@ -42,6 +43,7 @@ async def main():
         register_commands()  # Выбор пользователем языка и приветственное сообщение бота
         register_user_handler()
         register_handlers_admin()  # Регистрация обработчиков для админа
+        register_manager_handlers_group()
 
         # Запуск бота
         await dp.start_polling(bot)

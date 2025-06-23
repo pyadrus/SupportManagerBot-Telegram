@@ -53,3 +53,7 @@ def extract_appeal_id(text: str) -> Optional[int]:
             return int(match.group(1))
     except Exception as e:
         print(f"Ошибка при извлечении ID: {e}")
+
+
+def register_manager_handlers_group():
+    router.callback_query.register(accept_appeal, F.data == 'accept_appeal')
