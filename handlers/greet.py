@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
+from aiogram import F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
+from database import db
 from dispatcher import router
-from markups import choose_lang, admin_keyboard
+from keyboards import choose_lang, admin_keyboard
+from keyboards import start
 from middlewares import AdminFilter
 
 
 @router.message(CommandStart())
-async def start(message: Message):
+async def cmd_start(message: Message):
     """Отвечает на команду /start и выводит приветственное сообщение."""
     try:
         logger.info(f'Введена команда /start - {message.chat.id}')
@@ -18,6 +22,22 @@ async def start(message: Message):
             reply_markup=choose_lang())
     except Exception as e:
         logger.error(f"Ошибка /start: {e} - {message.chat.id}")
+
+
+@router.callback_query(F.data.startswith("lang-"))
+async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
+    """Обрабатывает выбор языка из меню выбора языка."""
+    try:
+        lang = call.data.split('-')[1]
+        logger.info(f'Выбран язык {lang} - {call.from_user.id}')
+        await db.add_user(call.from_user.id, lang)
+        await call.message.edit_text(
+            "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨" if lang == 'tj' else "Чем могу помочь, путник? ✨",
+            reply_markup=start(lang))
+    except Exception as e:
+        logger.error(f"Ошибка выбора языка: {e} - {call.from_user.id}")
+    finally:
+        await state.clear()
 
 
 @router.message(Command(commands=['admin']), AdminFilter())
@@ -31,5 +51,6 @@ async def admin(message: Message):
 
 
 def register_commands():
-    router.message.register(start)
-    router.message.register(admin)
+    router.message.register(cmd_start, CommandStart())
+    router.message.register(admin, Command(commands=['admin']), AdminFilter())
+    router.callback_query.register(choose_lang_handler, F.data.startswith("lang-"))

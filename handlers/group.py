@@ -6,10 +6,10 @@ from typing import Optional
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from bot.markups import close_appeal
 
 from database import db
 from dispatcher import router, bot
+from keyboards import close_appeal
 from other import get_logger
 
 logger = get_logger(__name__)

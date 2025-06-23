@@ -3,8 +3,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 
 def choose_lang() -> InlineKeyboardMarkup:
-    btns = [[InlineKeyboardButton(text="\U0001F1F9\U0001F1EF Забони тоҷикӣ", callback_data="lang-tj"),
-             InlineKeyboardButton(text="\U0001F1F7\U0001F1FA Русский язык", callback_data="lang-ru")]]
+    btns = [
+        [
+            InlineKeyboardButton(text="🇹🇯 Забони тоҷикӣ", callback_data="lang-tj"),
+            InlineKeyboardButton(text="🇷🇺 Русский язык", callback_data="lang-ru")
+        ]
+    ]
     return InlineKeyboardMarkup(inline_keyboard=btns)
 
 

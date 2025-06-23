@@ -5,30 +5,16 @@ from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
-from bot.config import settings
-from bot.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
+from loguru import logger
 
+from config import settings
 from database import db
 from dispatcher import router, bot
-from other import get_logger
+from keyboards import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
 from states import StartAppealStates
 
-logger = get_logger(__name__)
 
 
-@router.callback_query(F.data.startswith("lang-"))
-async def choose_lang(call: CallbackQuery, state: FSMContext):
-    try:
-        lang = call.data.split('-')[1]
-        logger.info(f'Выбран язык {lang} - {call.from_user.id}')
-        await db.add_user(call.from_user.id, lang)
-        await call.message.edit_text(
-            "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨" if lang == 'tj' else "Чем могу помочь, путник? ✨",
-            reply_markup=start(lang))
-    except Exception as e:
-        logger.error(f"Ошибка выбора языка: {e} - {call.from_user.id}")
-    finally:
-        await state.clear()
 
 
 @router.callback_query(F.data == 'call_manager')

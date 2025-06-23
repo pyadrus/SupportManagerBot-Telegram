@@ -4,14 +4,13 @@ from datetime import datetime, timedelta
 
 from aiogram import F
 from aiogram.types import Message, CallbackQuery
+from loguru import logger
 
 from database import DataBase
 from dispatcher import router, bot
-from markups import set_rating, stat_period, admin_keyboard
+from keyboards import set_rating, stat_period, admin_keyboard
 from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
-from other import get_logger
 
-logger = get_logger(__name__)
 close_timers = {}
 
 
