@@ -8,7 +8,7 @@ from loguru import logger
 
 from database import DataBase
 from dispatcher import router, bot
-from keyboards import set_rating, stat_period, admin_keyboard
+from keyboards.keyboards import set_rating, stat_period, admin_keyboard
 from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 
 close_timers = {}

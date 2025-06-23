@@ -7,8 +7,8 @@ from loguru import logger
 
 from database import db
 from dispatcher import router
-from keyboards import choose_lang, admin_keyboard
-from keyboards import start
+from keyboards.keyboards import choose_lang, admin_keyboard
+from keyboards.keyboards import start
 from middlewares import AdminFilter
 
 

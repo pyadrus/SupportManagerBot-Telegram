@@ -10,7 +10,7 @@ from loguru import logger
 from config import settings
 from database import db
 from dispatcher import router, bot
-from keyboards import consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
+from keyboards.keyboards import consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
 from states import StartAppealStates
 
 

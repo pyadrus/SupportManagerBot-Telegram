@@ -10,7 +10,7 @@ from loguru import logger
 
 from database import db
 from dispatcher import router, bot
-from keyboards import close_appeal
+from keyboards.keyboards import close_appeal
 
 
 @router.callback_query(F.data == 'accept_appeal')

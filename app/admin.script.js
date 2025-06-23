@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', () => {
         window.location.href = 'index.html';
     });
-    
+
     // Обновление даты и времени
     const datetimeElement = document.getElementById('current-datetime');
     function updateDateTime() {
@@ -68,12 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
         this.reset();
         addModal.style.display = 'none';
     });
-    
+
     // Рендер списка операторов и логика кнопок
     function renderOperatorsList() {
         const list = document.getElementById('operators-list');
         list.innerHTML = '';
-        
+
         operators.forEach((op, index) => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('personal-accepted').textContent = operator.stats.accepted;
         document.getElementById('personal-completed').textContent = operator.stats.completed;
         document.getElementById('personal-rating').textContent = operator.stats.rating + ' ⭐️';
-        
+
         personalStatsModal.style.display = 'block';
     }
 });
