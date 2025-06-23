@@ -1,13 +1,11 @@
 import asyncio
 import logging
 
+from loguru import logger
+
 from database import DataBase
 from dispatcher import dp
-from other import get_logger, bot
-
-dp.include_routers()
-
-logger = get_logger(__name__)
+from other import bot
 
 
 async def on_startup():
@@ -16,7 +14,7 @@ async def on_startup():
         bot_data = await bot.get_me()
         logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
     except Exception as e:
-        logger.critical(f'Ошибка запуска: {e}')
+        logger.exception(f'Ошибка запуска: {e}')
         raise
 
 
@@ -24,7 +22,7 @@ async def on_shutdown():
     try:
         logger.info('Бот остановлен')
     except Exception as e:
-        logger.error(f'Ошибка при остановке: {e}')
+        logger.exception(f'Ошибка при остановке: {e}')
 
 
 async def main():
@@ -35,7 +33,7 @@ async def main():
 
         await dp.start_polling(bot)
     except Exception as e:
-        logger.critical(f'Ошибка при запуске бота: {e}')
+        logger.exception(f'Ошибка при запуске бота: {e}')
 
 
 if __name__ == "__main__":

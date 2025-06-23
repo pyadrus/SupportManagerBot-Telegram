@@ -1,21 +1,18 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
-from datetime import datetime, timedelta
 import asyncio
+from datetime import datetime, timedelta
 
-# from database import db
-# from bot.markups import set_rating, admin_keyboard, stat_period
-# from bot.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
+from aiogram import F
+from aiogram.types import Message, CallbackQuery
 
 from database import DataBase
+from dispatcher import router
 from markups import set_rating, stat_period, admin_keyboard
 from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 from other import get_logger, bot
 
 logger = get_logger(__name__)
-router = Router()
-
 close_timers = {}
+
 
 async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30):
     try:
@@ -36,8 +33,11 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, ti
             if elapsed >= timeout_seconds:
                 await DataBase(filename="database.db").update_appeal_data(appeal_id, status_id=3)
                 lang = await DataBase(filename="database.db").get_user_lang(user_id)
-                await bot.send_message(user_id, "Лутфан сифати хидматро арзебӣ кунед, то мо беҳтар шавем" if lang == "tj" else "Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше ✨", reply_markup=set_rating(appeal_id))
-                await bot.send_message(manager_id, f"<b>✅ Обращение закрыто</b>. Вы свободны для принятия новых заявок 👻")
+                await bot.send_message(user_id,
+                                       "Лутфан сифати хидматро арзебӣ кунед, то мо беҳтар шавем" if lang == "tj" else "Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше ✨",
+                                       reply_markup=set_rating(appeal_id))
+                await bot.send_message(manager_id,
+                                       f"<b>✅ Обращение закрыто</b>. Вы свободны для принятия новых заявок 👻")
                 logger.info(f"Автоматическое закрытие заявки #{appeal_id} по таймауту")
                 break
     except Exception as e:
@@ -45,12 +45,14 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, ti
     finally:
         close_timers.pop(appeal_id, None)
 
+
 async def start_timer(appeal_id: int, user_id: int, manager_id: int):
     """Запуск нового таймера автоматического закрытия"""
     if appeal_id in close_timers:
         close_timers[appeal_id].cancel()
     task = asyncio.create_task(close_appeal_timeout(appeal_id, user_id, manager_id))
     close_timers[appeal_id] = task
+
 
 async def del_close_timer(appeal_id: int):
     """Удаление и отмена таймера"""
@@ -63,11 +65,12 @@ async def del_close_timer(appeal_id: int):
 async def ask_period(call: CallbackQuery):
     await call.message.edit_text("Выберите период для статистики:", reply_markup=stat_period())
 
+
 @router.callback_query(F.data.startswith("statistic-"))
 async def statistics(call: CallbackQuery):
     try:
         period = call.data.split("-")[1]
-        
+
         now = datetime.now()
         from_date = now - timedelta(days=int(period))
 
@@ -113,7 +116,8 @@ async def statistics(call: CallbackQuery):
                 manager_name = f"Оператор {manager_id}"
             count = data['count']
             avg_rating = round(sum(data['ratings']) / len(data['ratings']), 2) if data['ratings'] else "Нет оценок"
-            manager_texts.append(f"👤 <b>{manager_name}</b>:\nОбработано заявок: <b>{count}</b>\nРейтинг: <b>{avg_rating}</b>")
+            manager_texts.append(
+                f"👤 <b>{manager_name}</b>:\nОбработано заявок: <b>{count}</b>\nРейтинг: <b>{avg_rating}</b>")
 
         appeals_statuses = {}
         ratings_all = []
@@ -142,6 +146,7 @@ async def statistics(call: CallbackQuery):
         logger.error(f"Ошибка формирования статистики: {e} - {call.from_user.id}")
         await call.message.edit_text("Произошла ошибка, попробуйте ещё раз", reply_markup=admin_keyboard())
 
+
 @router.message(F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]), ManagerAppealsFilter())
 async def close_appeal_by_manager(message: Message):
     try:
@@ -152,13 +157,16 @@ async def close_appeal_by_manager(message: Message):
         await del_close_timer(appeal['id'])
         await DataBase(filename="database.db").update_appeal_data(appeal['id'], status_id=3)
         lang_client = await DataBase(filename="database.db").get_user_lang(appeal['user_id'])
-        await bot.send_message(appeal['user_id'], "Оператор сӯҳбатро анҷом дод. Ташаккур барои муроҷиат! Лутфан, сифати хизматрасониро баҳо диҳед, то мо беҳтар шавем. ✨" if lang_client == 'tj' else "Оператор завершил чат. Спасибо за обращение! Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше. ✨", reply_markup=set_rating(appeal['id']))
+        await bot.send_message(appeal['user_id'],
+                               "Оператор сӯҳбатро анҷом дод. Ташаккур барои муроҷиат! Лутфан, сифати хизматрасониро баҳо диҳед, то мо беҳтар шавем. ✨" if lang_client == 'tj' else "Оператор завершил чат. Спасибо за обращение! Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше. ✨",
+                               reply_markup=set_rating(appeal['id']))
         await message.answer(f"✅ <b>Вы завершили чат</b> Вы свободны для принятия новых заявок 👻")
         logger.info(f'Закрытие обращения - {message.from_user.id}')
     except Exception as e:
         logger.error(f"Ошибка закрытия заявки: {e} - {message.from_user.id}")
         await message.answer("Произошла ошибка при закрытии заявки")
-        
+
+
 @router.message(ManagerAppealsFilter(), F.text)
 async def manager_answer_appeal(message: Message):
     """Сообщения от операторов"""
@@ -167,7 +175,9 @@ async def manager_answer_appeal(message: Message):
         appeal = await DataBase(filename="database.db").get_appeal(manager_id=message.chat.id, status_id=2)
         if appeal and isinstance(appeal, dict):
             await bot.send_message(appeal['user_id'], message.text)
-            await DataBase(filename="database.db").update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+            await DataBase(filename="database.db").update_appeal_data(appeal['id'],
+                                                                      last_message_at=datetime.now().strftime(
+                                                                          '%d.%m.%Y %H:%M:%S'))
 
             await start_timer(appeal['id'], appeal['user_id'], message.from_user.id)
         else:
@@ -175,6 +185,7 @@ async def manager_answer_appeal(message: Message):
     except Exception as e:
         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
         await message.answer("Произошла ошибка, попробуйте ещё раз")
+
 
 @router.message(UserAppealsFilter(), F.text)
 async def client_answer_appeal(message: Message):
@@ -186,7 +197,9 @@ async def client_answer_appeal(message: Message):
             if appeal['manager_id']:
                 await start_timer(appeal['id'], message.from_user.id, appeal['manager_id'])
                 await bot.send_message(appeal['manager_id'], message.text)
-                await DataBase(filename="database.db").update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+                await DataBase(filename="database.db").update_appeal_data(appeal['id'],
+                                                                          last_message_at=datetime.now().strftime(
+                                                                              '%d.%m.%Y %H:%M:%S'))
             else:
                 await message.answer("Дождитесь оператора")
     except Exception as e:
