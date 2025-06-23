@@ -5,8 +5,7 @@ import logging
 from loguru import logger
 
 from database import DataBase
-from dispatcher import dp
-from other import bot
+from dispatcher import dp, bot
 
 
 async def on_startup():

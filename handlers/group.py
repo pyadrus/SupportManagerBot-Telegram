@@ -9,8 +9,8 @@ from aiogram.types import CallbackQuery
 from bot.markups import close_appeal
 
 from database import db
-from dispatcher import router
-from other import get_logger, bot
+from dispatcher import router, bot
+from other import get_logger
 
 logger = get_logger(__name__)
 

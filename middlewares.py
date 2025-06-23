@@ -3,8 +3,6 @@ from aiogram.filters import Filter
 from aiogram.types import Message
 from bot.config import settings
 
-from database import db
-
 
 class AdminFilter(Filter):
     """Проверка на права админа"""

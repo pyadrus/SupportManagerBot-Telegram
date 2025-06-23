@@ -9,8 +9,8 @@ from bot.config import settings
 from bot.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
 
 from database import db
-from dispatcher import router
-from other import get_logger, bot
+from dispatcher import router, bot
+from other import get_logger
 from states import StartAppealStates
 
 logger = get_logger(__name__)
