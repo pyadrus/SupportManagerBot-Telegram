@@ -1,13 +1,15 @@
-import aiosqlite
+from logging import Logger
+from typing import Optional
 # from os import path
 from typing import Union
-from logging import Logger
+
+import aiosqlite
 
 # from bot.config import settings
 from other import get_logger
-from typing import Optional
 
 logger: Logger = get_logger(__name__)
+
 
 class DataBase:
     def __init__(self, filename: str):
@@ -23,7 +25,8 @@ class DataBase:
             await conn.execute("PRAGMA synchronous=NORMAL")
             await conn.execute("PRAGMA optimize")
             await conn.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, lang TEXT)""")
-            await conn.execute("""CREATE TABLE IF NOT EXISTS statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT UNIQUE)""")
+            await conn.execute(
+                """CREATE TABLE IF NOT EXISTS statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT UNIQUE)""")
             await conn.execute("""CREATE TABLE IF NOT EXISTS appeals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -66,7 +69,9 @@ class DataBase:
     async def add_user(self, user_id: int, lang: str):
         try:
             conn = await self.open()
-            await conn.execute("""INSERT INTO users (user_id, lang) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET lang=excluded.lang""", (user_id, lang))
+            await conn.execute(
+                """INSERT INTO users (user_id, lang) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET lang=excluded.lang""",
+                (user_id, lang))
             await conn.commit()
         except Exception as e:
             logger.error(f"Ошибка добавления пользователя {user_id}: {e}")
@@ -113,7 +118,8 @@ class DataBase:
                 logger.critical(f"Отсутствует status_id = {status_id}")
                 status_id = 1
 
-            cursor = await conn.execute("""INSERT INTO appeals (user_id, status_id) VALUES (?, ?)""", (user_id, status_id))
+            cursor = await conn.execute("""INSERT INTO appeals (user_id, status_id) VALUES (?, ?)""",
+                                        (user_id, status_id))
             appeal_id = cursor.lastrowid
             await conn.commit()
             return appeal_id if appeal_id else 0
@@ -125,20 +131,20 @@ class DataBase:
         try:
             conn = await self.open()
             conn.row_factory = aiosqlite.Row
-            
+
             conditions = []
             values = []
             for key, value in kwargs.items():
                 conditions.append(f"{key} = ?")
                 values.append(value)
-            
+
             sql = "SELECT * FROM appeals"
             if conditions:
                 sql += " WHERE " + " AND ".join(conditions)
-            
+
             cursor = await conn.execute(sql, values)
             rows = await cursor.fetchall()
-            
+
             if not rows:
                 return {}
             elif len(rows) == 1:
@@ -152,7 +158,8 @@ class DataBase:
     async def check_user_active_appeal(self, user_id) -> bool:
         try:
             conn = await self.open()
-            cursor = await conn.execute("SELECT EXISTS(SELECT 1 FROM appeals WHERE user_id = ? AND status_id IN (1, 2)) LIMIT 1", (user_id,))
+            cursor = await conn.execute(
+                "SELECT EXISTS(SELECT 1 FROM appeals WHERE user_id = ? AND status_id IN (1, 2)) LIMIT 1", (user_id,))
             result = await cursor.fetchone()
             return bool(result[0]) if result else False
         except Exception as e:
@@ -162,12 +169,13 @@ class DataBase:
     async def check_manager_active_appeal(self, manager_id) -> bool:
         try:
             conn = await self.open()
-            cursor = await conn.execute("SELECT EXISTS(SELECT 1 FROM appeals WHERE manager_id = ? AND status_id IN (1, 2)) LIMIT 1", (manager_id,))
+            cursor = await conn.execute(
+                "SELECT EXISTS(SELECT 1 FROM appeals WHERE manager_id = ? AND status_id IN (1, 2)) LIMIT 1",
+                (manager_id,))
             result = await cursor.fetchone()
             return bool(result[0]) if result else False
         except Exception as e:
             logger.error(f"Ошибка проверки на активные обращения менеджера: {e}")
             return {}
-
 
 # db = DataBase(filename="database.db")
