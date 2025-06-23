@@ -4,15 +4,14 @@ import logging
 
 from loguru import logger
 
-from database import DataBase
+from database import db
 from dispatcher import dp, bot
 from handlers.greet import register_commands
 
 
 async def on_startup():
     try:
-        async with DataBase(filename="database.db") as db:
-            await db.create_tables()
+        await db.create_tables()
         bot_data = await bot.get_me()
         logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
     except Exception as e:

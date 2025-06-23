@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-from logging import Logger
+# from logging import Logger
 from typing import Optional
 # from os import path
 from typing import Union
 
 import aiosqlite
+from loguru import logger
+
 
 # from bot.config import settings
-from other import get_logger
 
-logger: Logger = get_logger(__name__)
+# logger: Logger = get_logger(__name__)
 
 
 class DataBase:
@@ -179,4 +180,4 @@ class DataBase:
             logger.error(f"Ошибка проверки на активные обращения менеджера: {e}")
             return {}
 
-# db = DataBase(filename="database.db")
+db = DataBase(filename="database.db")
