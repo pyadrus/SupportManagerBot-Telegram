@@ -1,0 +1,189 @@
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
+from other import get_logger, bot
+import middlewares as mw
+import markups as mk
+from datetime import datetime, timedelta
+from database import db
+import asyncio
+
+logger = get_logger(__name__)
+router = Router()
+
+close_timers = {}
+
+async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30):
+    try:
+        while True:
+            await asyncio.sleep(5)
+            appeal = await db.get_appeal(id=appeal_id)
+            if not appeal or appeal.get('status_id') != 2:
+                logger.info(f"Таймер закрытия для заявки #{appeal_id} остановлен")
+                break
+
+            last_msg_str = appeal.get('last_message_at')
+            if not last_msg_str:
+                continue
+
+            last_msg_dt = datetime.strptime(last_msg_str, '%d.%m.%Y %H:%M:%S')
+            elapsed = (datetime.now() - last_msg_dt).total_seconds()
+
+            if elapsed >= timeout_seconds:
+                await db.update_appeal_data(appeal_id, status_id=3)
+                lang = await db.get_user_lang(user_id)
+                await bot.send_message(user_id, "Лутфан сифати хидматро арзебӣ кунед, то мо беҳтар шавем" if lang == "tj" else "Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше ✨", reply_markup=mk.set_rating(appeal_id))
+                await bot.send_message(manager_id, f"<b>✅ Обращение закрыто</b>. Вы свободны для принятия новых заявок 👻")
+                logger.info(f"Автоматическое закрытие заявки #{appeal_id} по таймауту")
+                break
+    except Exception as e:
+        logger.error(f"Ошибка таймера закрытия заявки #{appeal_id}: {e}")
+    finally:
+        close_timers.pop(appeal_id, None)
+
+async def start_timer(appeal_id: int, user_id: int, manager_id: int):
+    """Запуск нового таймера автоматического закрытия"""
+    if appeal_id in close_timers:
+        close_timers[appeal_id].cancel()
+    task = asyncio.create_task(close_appeal_timeout(appeal_id, user_id, manager_id))
+    close_timers[appeal_id] = task
+
+async def del_close_timer(appeal_id: int):
+    """Удаление и отмена таймера"""
+    task = close_timers.pop(appeal_id, None)
+    if task:
+        task.cancel()
+
+
+@router.callback_query(F.data == 'statistic', mw.AdminFilter())
+async def ask_period(call: CallbackQuery):
+    await call.message.edit_text("Выберите период для статистики:", reply_markup=mk.stat_period())
+
+@router.callback_query(F.data.startswith("statistic-"))
+async def statistics(call: CallbackQuery):
+    try:
+        period = call.data.split("-")[1]
+        
+        now = datetime.now()
+        from_date = now - timedelta(days=int(period))
+
+        logger.info(f'Статистика за {period} - {call.from_user.id}')
+
+        appeals_raw = await db.get_appeal()
+
+        if isinstance(appeals_raw, dict):
+            appeals = [appeals_raw] if appeals_raw else []
+        elif isinstance(appeals_raw, list):
+            appeals = appeals_raw
+        else:
+            appeals = []
+
+        filtered_appeals = []
+        for a in appeals:
+            if not a or not a.get('last_message_at'):
+                continue
+            try:
+                last_msg_dt = datetime.strptime(a['last_message_at'], '%d.%m.%Y %H:%M:%S')
+                if last_msg_dt >= from_date:
+                    filtered_appeals.append(a)
+            except Exception:
+                continue
+
+        stats_by_manager = {}
+        for appeal in filtered_appeals:
+            manager_id = appeal.get('manager_id')
+            if not manager_id:
+                continue
+            if manager_id not in stats_by_manager:
+                stats_by_manager[manager_id] = {'count': 0, 'ratings': []}
+            stats_by_manager[manager_id]['count'] += 1
+            if appeal.get('rating') is not None:
+                stats_by_manager[manager_id]['ratings'].append(appeal['rating'])
+
+        manager_texts = []
+        for manager_id, data in stats_by_manager.items():
+            try:
+                manager = await bot.get_chat(manager_id)
+                manager_name = f"@{manager.username}" if manager.username else f"Оператор {manager_id}"
+            except Exception:
+                manager_name = f"Оператор {manager_id}"
+            count = data['count']
+            avg_rating = round(sum(data['ratings']) / len(data['ratings']), 2) if data['ratings'] else "Нет оценок"
+            manager_texts.append(f"👤 <b>{manager_name}</b>:\nОбработано заявок: <b>{count}</b>\nРейтинг: <b>{avg_rating}</b>")
+
+        appeals_statuses = {}
+        ratings_all = []
+        for appeal in filtered_appeals:
+            status_id = appeal.get('status_id')
+            if status_id:
+                appeals_statuses[status_id] = appeals_statuses.get(status_id, 0) + 1
+            if appeal.get('rating') is not None:
+                ratings_all.append(appeal['rating'])
+
+        status_texts = []
+        for status_id, count in appeals_statuses.items():
+            status_name = await db.get_status_name(status_id) or f"Статус {status_id}"
+            status_texts.append(f"{status_name}: {count}")
+        avg_rating = round(sum(ratings_all) / len(ratings_all), 2) if ratings_all else "Нет оценок"
+        text = f"📊 <b>Статистика за период:</b> <i>{period} суток</i>\n\n"
+        if manager_texts:
+            text += "\n\n".join(manager_texts)
+        else:
+            text += "Нет данных по операторам\n"
+        status_text = '\n'.join(status_texts) if status_texts else 'Нет данных по статусам\n'
+        text += f"\n\n<b>Общая статистика:</b>\n{status_text}\n⭐ <b>Средний рейтинг:</b> {avg_rating}"
+
+        await call.message.edit_text(text, reply_markup=mk.admin())
+    except Exception as e:
+        logger.error(f"Ошибка формирования статистики: {e} - {call.from_user.id}")
+        await call.message.edit_text("Произошла ошибка, попробуйте ещё раз", reply_markup=mk.admin())
+
+@router.message(F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]), mw.ManagerAppealsFilter())
+async def close_appeal_by_manager(message: Message):
+    try:
+        appeal = await db.get_appeal(manager_id=message.from_user.id, status_id=2)
+        if not appeal:
+            await message.answer("Заявка не найдена")
+            return
+        await del_close_timer(appeal['id'])
+        await db.update_appeal_data(appeal['id'], status_id=3)
+        lang_client = await db.get_user_lang(appeal['user_id'])
+        await bot.send_message(appeal['user_id'], "Оператор сӯҳбатро анҷом дод. Ташаккур барои муроҷиат! Лутфан, сифати хизматрасониро баҳо диҳед, то мо беҳтар шавем. ✨" if lang_client == 'tj' else "Оператор завершил чат. Спасибо за обращение! Пожалуйста, оцените качество обслуживания, чтобы мы могли стать лучше. ✨", reply_markup=mk.set_rating(appeal['id']))
+        await message.answer(f"✅ <b>Вы завершили чат</b> Вы свободны для принятия новых заявок 👻")
+        logger.info(f'Закрытие обращения - {message.from_user.id}')
+    except Exception as e:
+        logger.error(f"Ошибка закрытия заявки: {e} - {message.from_user.id}")
+        await message.answer("Произошла ошибка при закрытии заявки")
+        
+@router.message(mw.ManagerAppealsFilter(), F.text)
+async def manager_answer_appeal(message: Message):
+    """Сообщения от операторов"""
+    try:
+        logger.info(f'Ответ обращению - {message.chat.id}')
+        appeal = await db.get_appeal(manager_id=message.chat.id, status_id=2)
+        if appeal and isinstance(appeal, dict):
+            await bot.send_message(appeal['user_id'], message.text)
+            await db.update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+
+            await start_timer(appeal['id'], appeal['user_id'], message.from_user.id)
+        else:
+            await message.answer("Я не смог найти обращение, попробуйте позже")
+    except Exception as e:
+        logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
+        await message.answer("Произошла ошибка, попробуйте ещё раз")
+
+@router.message(mw.UserAppealsFilter(), F.text)
+async def client_answer_appeal(message: Message):
+    """Сообщения от пользователя"""
+    try:
+        logger.info(f'Ответ обращению - {message.chat.id}')
+        appeal = await db.get_appeal(user_id=message.chat.id, status_id=2)
+        if appeal and isinstance(appeal, dict):
+            if appeal['manager_id']:
+                await start_timer(appeal['id'], message.from_user.id, appeal['manager_id'])
+                await bot.send_message(appeal['manager_id'], message.text)
+                await db.update_appeal_data(appeal['id'], last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+            else:
+                await message.answer("Дождитесь оператора")
+    except Exception as e:
+        logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
+        await message.answer("Произошла ошибка, попробуйте ещё раз")

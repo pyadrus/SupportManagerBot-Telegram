@@ -1,0 +1,108 @@
+/* --- Глобальные стили и новый шрифт --- */
+:root {
+    --primary-color: #4f46e5;
+    /* Индиго */
+    --primary-hover: #4338ca;
+    --secondary-color: #10b981;
+    /* Зеленый/Бирюзовый */
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --bg-color: #f8fafc;
+    --text-color: #334155;
+    --light-gray: #e2e8f0;
+    --white: #ffffff;
+    --font-family: 'Nunito', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: var(--text-color);
+}
+
+/* --- Контейнер входа --- */
+.login-container {
+    background-color: var(--white);
+    padding: 50px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 360px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+h2 {
+    margin: 0 0 30px 0;
+    color: var(--primary-color);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* --- Поля ввода --- */
+.input-group {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* --- Кнопка --- */
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--font-family);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+}
