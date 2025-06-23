@@ -180,4 +180,5 @@ class DataBase:
             logger.error(f"Ошибка проверки на активные обращения менеджера: {e}")
             return {}
 
+
 db = DataBase(filename="database.db")

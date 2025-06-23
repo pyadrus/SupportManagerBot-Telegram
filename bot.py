@@ -7,6 +7,7 @@ from loguru import logger
 from database import db
 from dispatcher import dp, bot
 from handlers.greet import register_commands
+from handlers.user import register_user_handler
 
 
 async def on_startup():
@@ -37,7 +38,8 @@ async def main():
         dp.shutdown.register(on_shutdown)
 
         # Регистрация команд
-        register_commands()
+        register_commands()  # Выбор пользователем языка и приветственное сообщение бота
+        register_user_handler()
 
         # Запуск бота
         await dp.start_polling(bot)

@@ -10,11 +10,8 @@ from loguru import logger
 from config import settings
 from database import db
 from dispatcher import router, bot
-from keyboards import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
+from keyboards import consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
 from states import StartAppealStates
-
-
-
 
 
 @router.callback_query(F.data == 'call_manager')
@@ -177,3 +174,18 @@ async def set_rating(call: CallbackQuery):
         logger.info(f"Установлен рейтинг для обращения {data[1]} - {data[2]}")
     except Exception as e:
         logger.error(f"Ошибка установки рейтинга: {e} - {call.from_user.id}")
+
+
+def register_user_handler():
+    # --- Callback handlers ---
+    router.callback_query.register(start_create_appeal, F.data == 'call_manager')
+    router.callback_query.register(consent_appeal, F.data == 'consent_my_appeal')
+    router.callback_query.register(start_edit_appeal, F.data == 'edit_my_appeal')
+    router.callback_query.register(edit_type_appeal, F.data.startswith('edit_appeal-'))
+    router.callback_query.register(set_rating, F.data.startswith('set_rating-'))
+
+    # --- FSM message handlers ---
+    router.message.register(fio_appeal, StateFilter(StartAppealStates.fio))
+    router.message.register(phone_appeal, StateFilter(StartAppealStates.phone))
+    router.message.register(question_appeal, StateFilter(StartAppealStates.question))
+    router.message.register(edit_appeal, StateFilter(StartAppealStates.edit))
