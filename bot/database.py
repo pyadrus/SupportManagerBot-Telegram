@@ -3,7 +3,7 @@ from os import path
 from typing import Union
 from logging import Logger
 from other import get_logger
-from config import settings
+from bot.config import settings
 from typing import Optional
 
 logger: Logger = get_logger(__name__)

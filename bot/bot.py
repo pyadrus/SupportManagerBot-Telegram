@@ -3,15 +3,17 @@ import logging
 from pathlib import Path
 from sys import path
 
+from bot.database import db
+
 path.append(str(Path(__file__).parent))
 
-from database import db
+# from database import db
 from aiogram import Dispatcher
 from other import get_logger, bot
-from handlers.commands import router as cmd_rt
-from handlers.user import router as user_rt
-from handlers.admin import router as adm_rt
-from handlers.group import router as group_rt
+from bot.handlers.commands import router as cmd_rt
+from bot.handlers.user import router as user_rt
+from bot.handlers.admin import router as adm_rt
+from bot.handlers.group import router as group_rt
 
 dp = Dispatcher()
 dp.include_routers(cmd_rt, user_rt, adm_rt, group_rt)

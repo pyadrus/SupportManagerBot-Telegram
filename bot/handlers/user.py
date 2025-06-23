@@ -5,11 +5,11 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from bot.src.config import settings
-from bot.src.database import db
-from bot.src.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
-from bot.src.other import get_logger, bot
-from bot.src.states import StartAppealStates
+from bot.config import settings
+from bot.database import db
+from bot.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
+from bot.other import get_logger, bot
+from bot.states import StartAppealStates
 
 logger = get_logger(__name__)
 router = Router()

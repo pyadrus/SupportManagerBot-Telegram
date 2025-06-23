@@ -6,7 +6,7 @@ from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from os import path, makedirs
-from config import settings
+from bot.config import settings
 import inspect
 
 

@@ -3,10 +3,10 @@ from aiogram.types import Message, CallbackQuery
 from datetime import datetime, timedelta
 import asyncio
 
-from bot.src.database import db
-from bot.src.markups import set_rating, admin_keyboard, stat_period
-from bot.src.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
-from bot.src.other import get_logger, bot
+from bot.database import db
+from bot.markups import set_rating, admin_keyboard, stat_period
+from bot.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
+from bot.other import get_logger, bot
 
 logger = get_logger(__name__)
 router = Router()
