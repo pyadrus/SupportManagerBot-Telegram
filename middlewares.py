@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from aiogram.filters import Filter
 from aiogram.types import Message
 from bot.config import settings

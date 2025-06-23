@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 

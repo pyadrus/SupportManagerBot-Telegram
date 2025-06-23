@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from logging import Logger
 from typing import Optional
 # from os import path

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import subprocess
 import sys
@@ -7,7 +8,7 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 
 # Команды с указанием PYTHONPATH
 commands = [
-    # [sys.executable, "app/app.py"],  # запускает приложение
+    [sys.executable, "app/app.py"],  # запускает приложение
     [sys.executable, "bot.py"],  # запускает бота
     # [
     #     "tuna",
