@@ -11,7 +11,7 @@ def start(lang: str) -> InlineKeyboardMarkup:
         btns = [[InlineKeyboardButton(text="🆘 Помощь специалиста", callback_data="call_manager")], [InlineKeyboardButton(text="🔗 Портал госуслуг", url="https://khizmat.ehukumat.tj"), InlineKeyboardButton(text="✍️ Скачать ИМЗО", url="https://play.google.com/store/apps/details?id=tj.dc.myid1a")]]
     return InlineKeyboardMarkup(inline_keyboard=btns)
 
-def admin() -> InlineKeyboardMarkup:
+def admin_keyboard() -> InlineKeyboardMarkup:
     btns = [[InlineKeyboardButton(text="📊 Статистика", callback_data="statistic")]]
     return InlineKeyboardMarkup(inline_keyboard=btns)
 

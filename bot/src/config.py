@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
+
 class Settings(BaseSettings):
     TOKEN: str
     ADMIN: int
@@ -14,7 +15,8 @@ class Settings(BaseSettings):
         if v not in ['console', 'file']:
             raise ValueError("LOG_TYPE должен быть 'console' или 'file'")
         return v
-    
+
     model_config = SettingsConfigDict(env_file=".env")
-    
+
+
 settings = Settings()
