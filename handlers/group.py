@@ -8,10 +8,11 @@ from typing import Optional
 
 from database import db
 from bot.markups import close_appeal
+
+from dispatcher import router
 from other import get_logger, bot
 
 logger = get_logger(__name__)
-router = Router()
 
 @router.callback_query(F.data == 'accept_appeal')
 async def accept_appeal(call: CallbackQuery, state: FSMContext):

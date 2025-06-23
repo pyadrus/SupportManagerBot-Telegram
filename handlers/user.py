@@ -1,18 +1,18 @@
 from datetime import datetime
 
-from aiogram import Router, F
+from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
-
 from bot.config import settings
-from database import db
 from bot.markups import start, consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
+
+from database import db
+from dispatcher import router
 from other import get_logger, bot
-from bot.states import StartAppealStates
+from states import StartAppealStates
 
 logger = get_logger(__name__)
-router = Router()
 
 
 @router.callback_query(F.data.startswith("lang-"))
