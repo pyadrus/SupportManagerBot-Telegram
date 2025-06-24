@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from loguru import logger
 
-from database import db
+from database.database import db
 from dispatcher import router, bot
 from keyboards.keyboards import close_appeal
 

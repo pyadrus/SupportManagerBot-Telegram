@@ -176,4 +176,4 @@ class DataBase:
             return {}
 
 
-db = DataBase(filename=DB_NAME)
+db = DataBase(filename=f"database/{DB_NAME}")

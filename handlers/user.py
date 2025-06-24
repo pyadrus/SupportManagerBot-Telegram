@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
 from config import GROUP_ID
-from database import db
+from database.database import db
 from dispatcher import router, bot
 from keyboards.keyboards import consent_or_edit_my_appeal, manage_appeal, edit_my_appeal
 from states import StartAppealStates

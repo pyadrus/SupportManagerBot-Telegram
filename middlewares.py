@@ -3,7 +3,7 @@ from aiogram.filters import Filter
 from aiogram.types import Message
 
 from config import ADMIN
-from database import db
+from database.database import db
 
 
 class AdminFilter(Filter):

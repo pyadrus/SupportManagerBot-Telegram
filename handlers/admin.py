@@ -6,7 +6,7 @@ from aiogram import F
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from database import DataBase
+from database.database import DataBase
 from dispatcher import router, bot
 from keyboards.keyboards import set_rating, stat_period, admin_keyboard
 from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
@@ -206,11 +206,13 @@ async def client_answer_appeal(message: Message):
         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
         await message.answer("Произошла ошибка, попробуйте ещё раз")
 
+
 def register_handlers_admin():
     # --- Callback handlers ---
     router.callback_query.register(ask_period, F.data == 'statistic', AdminFilter())
     router.callback_query.register(statistics, F.data.startswith("statistic-"))
-    router.callback_query.register(close_appeal_by_manager, F.data == 'close_appeal_by_manager')  # Если есть такая кнопка
+    router.callback_query.register(close_appeal_by_manager,
+                                   F.data == 'close_appeal_by_manager')  # Если есть такая кнопка
     router.callback_query.register(set_rating, F.data.startswith("set_rating-"))
 
     # --- Message handlers (текстовые сообщения) ---

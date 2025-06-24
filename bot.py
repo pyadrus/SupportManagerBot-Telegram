@@ -4,7 +4,7 @@ import logging
 
 from loguru import logger
 
-from database import db
+from database.database import db
 from dispatcher import dp, bot
 from handlers.admin import register_handlers_admin
 from handlers.greet import register_commands
