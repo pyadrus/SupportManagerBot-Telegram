@@ -10,12 +10,6 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 commands = [
     [sys.executable, "app/app.py"],  # запускает приложение
     [sys.executable, "bot.py"],  # запускает бота
-    # [
-    #     "tuna",
-    #     "http",
-    #     "8080",
-    #     "--subdomain=mybotadmin",
-    # ],  # запускает сервер на порту 8080 с поддоменом mybotadmin
 ]
 
 # Установить PYTHONPATH на корень проекта
