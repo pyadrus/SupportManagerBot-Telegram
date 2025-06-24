@@ -2,6 +2,9 @@
 import os
 import subprocess
 import sys
+from loguru import logger
+
+logger.add("log/log.log")
 
 # Путь к корню проекта (где находится scr/)
 project_root = os.path.dirname(os.path.abspath(__file__))

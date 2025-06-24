@@ -16,30 +16,48 @@ class DataBase:
         return await aiosqlite.connect(self._filename)
 
     async def create_tables(self) -> None:
+        """
+        Асинхронно создаёт таблицы в базе данных при их отсутствии.
+        Также настраивает параметры SQLite для повышения производительности.
+        """
         try:
+            # Открываем соединение с базой данных
             conn = await self.open()
+            # Включаем режим WAL (Write-Ahead Logging), чтобы улучшить параллелизм и скорость записи
             await conn.execute("PRAGMA journal_mode=WAL")
+            # Устанавливаем уровень синхронизации диска в NORMAL — хороший баланс между скоростью и надёжностью
             await conn.execute("PRAGMA synchronous=NORMAL")
+            # Выполняем внутренние оптимизации БД, чтобы повысить производительность
             await conn.execute("PRAGMA optimize")
+            # Создаём таблицу пользователей, если она ещё не существует
+            # Хранит ID пользователя и его язык (для мультиязычности)
             await conn.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, lang TEXT)""")
+            # Таблица статусов обращений. Используется как справочник (статусы: "открыт", "в обработке", "закрыт" и т.д.)
             await conn.execute(
                 """CREATE TABLE IF NOT EXISTS statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT UNIQUE)""")
-            await conn.execute("""CREATE TABLE IF NOT EXISTS appeals (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                manager_id INTEGER,
-                status_id INTEGER DEFAULT 1,
-                rating INTEGER,
-                last_message_at TEXT,
-                FOREIGN KEY(user_id) REFERENCES users(user_id),
-                FOREIGN KEY(manager_id) REFERENCES users(user_id),
-                FOREIGN KEY(status_id) REFERENCES statuses(id)
-            )""")
+            # Основная таблица обращений (тикетов)
+            # Ссылается на пользователей и статусы через внешние ключи
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS appeals (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,                   -- кто создал обращение
+                    manager_id INTEGER,                -- кто из менеджеров его обрабатывает
+                    status_id INTEGER DEFAULT 1,       -- текущий статус (по умолчанию — первый статус)
+                    rating INTEGER,                    -- оценка после закрытия обращения
+                    last_message_at TEXT,              -- время последнего сообщения
+                    FOREIGN KEY(user_id) REFERENCES users(user_id),
+                    FOREIGN KEY(manager_id) REFERENCES users(user_id),
+                    FOREIGN KEY(status_id) REFERENCES statuses(id)
+                )
+            """)
+            # Добавляем стандартные статусы в таблицу statuses (например: 'open', 'closed')
             await self.add_statuses()
+            # Сохраняем изменения в базе данных
             await conn.commit()
-            logger.info("Таблицы созданы")
+            logger.info("Таблицы успешно созданы или уже существуют")
         except Exception as e:
-            logger.error(f"Ошибка создания таблиц: {e}")
+            # Логируем ошибку, если что-то пошло не так
+            logger.error(f"Ошибка при создании таблиц: {e}")
 
     async def add_statuses(self):
         try:
