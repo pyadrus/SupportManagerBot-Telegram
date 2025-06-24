@@ -11,6 +11,7 @@ from handlers.greet import register_commands
 from handlers.group import register_manager_handlers_group
 from handlers.user import register_user_handler
 
+logger.add("log/log.log")
 
 async def on_startup():
     try:
