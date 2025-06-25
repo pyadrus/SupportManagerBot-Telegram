@@ -7,8 +7,8 @@ from loguru import logger
 from database.database import db
 from dispatcher import dp, bot
 from handlers.admin.admin import register_handlers_admin
-from handlers.user.user import register_commands
 from handlers.manager.group import register_manager_handlers_group
+from handlers.user.greet import register_commands
 from handlers.user.user import register_user_handler
 
 logger.add("log/log.log")

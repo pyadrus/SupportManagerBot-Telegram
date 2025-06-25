@@ -1,9 +1,13 @@
 # app.py
-from fastapi import FastAPI, Request  # ← Добавлен Request
+
 from pathlib import Path
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 
 # Импортируем роутер
 from auth import router as auth_router
@@ -25,3 +29,7 @@ app.include_router(auth_router)
 @app.get("/operator", response_class=HTMLResponse)
 async def operator_page(request: Request):
     return templates.TemplateResponse("operator.html", {"request": request})
+
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="127.0.0.1", port=8080, reload=True)
