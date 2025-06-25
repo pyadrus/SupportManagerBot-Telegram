@@ -31,5 +31,10 @@ async def operator_page(request: Request):
     return templates.TemplateResponse("operator.html", {"request": request})
 
 
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_page(request: Request):
+    return templates.TemplateResponse("admin.html", {"request": request})
+
+
 if __name__ == "__main__":
     uvicorn.run("app:app", host="127.0.0.1", port=8080, reload=True)

@@ -7,7 +7,10 @@ from typing import Optional
 router = APIRouter()
 
 # Пример данных пользователя
-VALID_USER = {"username": "admin", "password": "12345"}
+VALID_USERS = {
+    "admin": {"password": "12345", "role": "admin"},
+    "operator": {"password": "12345", "role": "operator"}
+}
 
 # Укажи путь к шаблонам
 TEMPLATES_DIR = "templates"
@@ -35,7 +38,14 @@ async def login(
     Если верные — перенаправляет на /operator.
     Иначе — возвращает на главную с ошибкой.
     """
-    if username == VALID_USER["username"] and password == VALID_USER["password"]:
-        return RedirectResponse(url="/operator", status_code=303)
+    user = VALID_USERS.get(username)
+    if user and user["password"] == password:
+        if user["role"] == "admin":
+            return RedirectResponse(url="/admin", status_code=303)
+        else:
+            return RedirectResponse(url="/operator", status_code=303)
+
+    # if username == VALID_USERS["username"] and password == VALID_USERS["password"]:
+    #     return RedirectResponse(url="/operator", status_code=303)
 
     return RedirectResponse(url="/?error=Неверный+логин+или+пароль", status_code=303)
