@@ -13,6 +13,7 @@ from handlers.user.user import register_user_handler
 
 logger.add("log/log.log")
 
+
 async def on_startup():
     try:
         await db.create_tables()
