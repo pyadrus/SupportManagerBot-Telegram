@@ -8,16 +8,16 @@ from src.bot.handlers.admin.admin import register_handlers_admin
 from src.bot.handlers.manager.group import register_manager_handlers_group
 from src.bot.handlers.user.greet import register_commands
 from src.bot.handlers.user.user import register_user_handler
-from src.core.database.database import db
 from src.bot.system.dispatcher import dp, bot
+from src.core.database.database import db, Person
 
 logger.add("log/log.log")
 
 
 async def on_startup():
     try:
-        await db.create_tables()
         bot_data = await bot.get_me()
+        db.create_tables([Person])  # Создание таблицы в базе данных
         logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
     except Exception as e:
         logger.exception(f'Ошибка запуска: {e}')

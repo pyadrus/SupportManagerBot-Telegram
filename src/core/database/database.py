@@ -7,6 +7,50 @@ from loguru import logger
 
 from src.core.config.config import DB_NAME
 
+from peewee import *
+
+# Указываем путь к базе данных SQLite
+db = SqliteDatabase(f"src/core/database/{DB_NAME}")
+
+
+class Person(Model):
+    """
+    Хранит информацию о пользователях, запустивших Telegram-бота.
+
+    Attributes:
+        id_user (int): Уникальный ID пользователя в Telegram
+        first_name (str): Имя пользователя
+        last_name (str): Фамилия пользователя
+        username (str): Имя пользователя в Telegram
+        chat_id (str): ID чата (может использоваться как хэш-идентификатор)
+        created_at (datetime): Дата и время первого запуска бота пользователем
+    """
+
+    id_user = IntegerField(unique=True)  # Уникальный ID пользователя Telegram
+    first_name = CharField(null=True)  # Имя пользователя
+    last_name = CharField(null=True)  # Фамилия пользователя
+    username = CharField(null=True)  # Telegram username
+    chat_id = CharField(null=True)  # ID чата или хэш
+    created_at = DateTimeField()  # Время первого запуска
+
+    class Meta:
+        database = db
+        table_name = "registered_users_start"
+
+
+def register_user(user_data):
+    """Регистрирует пользователя в БД на основе переданных данных"""
+    Person.get_or_create(
+        id_user=user_data["id"],
+        defaults={
+            "first_name": user_data["first_name"],
+            "last_name": user_data["last_name"],
+            "username": user_data["username"],
+            "chat_id": str(user_data["chat_id"]),
+            "created_at": user_data["date"]
+        }
+    )
+
 
 class DataBase:
     def __init__(self, filename: str):
@@ -15,7 +59,7 @@ class DataBase:
     async def open(self) -> aiosqlite.Connection:
         return await aiosqlite.connect(self._filename)
 
-    async def create_tables(self) -> None:
+    async def create_tabl(self) -> None:
         """
         Асинхронно создаёт таблицы в базе данных при их отсутствии.
         Также настраивает параметры SQLite для повышения производительности.
@@ -206,4 +250,5 @@ class DataBase:
             logger.error(f"Ошибка проверки на активные обращения менеджера: {e}")
             return {}
 
-db = DataBase(filename=f"src/core/database/{DB_NAME}")
+
+# db = DataBase(filename=f"src/core/database/{DB_NAME}")

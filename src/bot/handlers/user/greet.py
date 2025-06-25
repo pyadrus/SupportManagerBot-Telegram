@@ -8,7 +8,7 @@ from loguru import logger
 from src.bot.keyboards.keyboards import choose_lang, start, admin_keyboard
 from src.bot.middlewares.middlewares import AdminFilter
 from src.bot.system.dispatcher import router
-from src.core.database.database import db
+from src.core.database.database import db, register_user
 
 
 @router.message(CommandStart())
@@ -16,9 +16,23 @@ async def cmd_start(message: Message):
     """Отвечает на команду /start и выводит приветственное сообщение."""
     try:
         logger.info(f'Введена команда /start - {message.chat.id}')
+
+        # Формируем данные пользователя
+        user_data = {
+            "id": message.from_user.id,
+            "first_name": message.from_user.first_name,
+            "last_name": message.from_user.last_name,
+            "username": message.from_user.username,
+            "chat_id": str(message.chat.id),  # chat.id как строка
+            "date": message.date  # ← Правильное обращение к дате
+        }
+
+        register_user(user_data)
+
         await message.answer(
             "👋 <b>Добро пожаловать! Выберите язык общения</b> / <b>Хуш омадед! Забони муомиларо интихоб кунед:</b>",
-            reply_markup=choose_lang())
+            reply_markup=choose_lang()
+        )
     except Exception as e:
         logger.error(f"Ошибка /start: {e} - {message.chat.id}")
 
