@@ -8,9 +8,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from loguru import logger
 
+from src.bot.keyboards.keyboards import close_appeal
+from src.bot.system.dispatcher import router, bot
 from src.core.database.database import db
-from src.bot.bot import router, bot
-from src.bot.bot import close_appeal
 
 
 @router.callback_query(F.data == 'accept_appeal')

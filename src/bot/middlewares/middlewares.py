@@ -2,7 +2,7 @@
 from aiogram.filters import Filter
 from aiogram.types import Message
 
-from src.bot.bot import ADMIN
+from src.core.config.config import ADMIN
 from src.core.database.database import db
 
 

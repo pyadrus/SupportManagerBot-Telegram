@@ -5,7 +5,7 @@ from typing import Union
 import aiosqlite
 from loguru import logger
 
-from src.bot.bot import DB_NAME
+from src.core.config.config import DB_NAME
 
 
 class DataBase:
@@ -206,5 +206,4 @@ class DataBase:
             logger.error(f"Ошибка проверки на активные обращения менеджера: {e}")
             return {}
 
-
-db = DataBase(filename=f"database/{DB_NAME}")
+db = DataBase(filename=f"src/core/database/{DB_NAME}")
