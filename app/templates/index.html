@@ -17,14 +17,14 @@
 <div class="login-container">
     <h2>Авторизация</h2>
 
-    <!-- Вывод сообщения об ошибке -->
+    <!-- Сообщение об ошибке -->
     {% if error %}
         <div class="error-message">
             {{ error }}
         </div>
     {% endif %}
 
-    <!-- Форма отправляет POST-запрос на /login -->
+    <!-- Форма отправки -->
     <form method="POST" action="/login">
         <div class="input-group">
             <label for="username">Логин</label>

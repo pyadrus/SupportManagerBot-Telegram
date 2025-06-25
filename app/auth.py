@@ -1,28 +1,28 @@
 # auth.py
-from typing import Optional
 
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
 
 router = APIRouter()
 
-# Пример данных пользователей (в реальности — из БД)
+# Пример данных пользователя
 VALID_USER = {"username": "admin", "password": "12345"}
 
-# Укажи правильный путь к шаблонам
+# Укажи путь к шаблонам
 TEMPLATES_DIR = "templates"
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
-@router.get("/login", response_class=HTMLResponse)
+# === Убираем /login, делаем всё на главной ===
+
+@router.get("/", response_class=HTMLResponse)
 async def login_page(request: Request, error: Optional[str] = None):
     """
-    Отображает форму входа.
-    :param request: Объект запроса.
-    :param error: Сообщение об ошибке (если есть).
+    Отображает форму авторизации на главной странице.
     """
-    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+    return templates.TemplateResponse("index.html", {"request": request, "error": error})
 
 
 @router.post("/login")
@@ -33,11 +33,10 @@ async def login(
 ):
     """
     Проверяет логин и пароль.
-    Если верные — перенаправляет на /admin.
-    Иначе — показывает ошибку.
+    Если верные — перенаправляет на /operator.
+    Иначе — возвращает на главную с ошибкой.
     """
     if username == VALID_USER["username"] and password == VALID_USER["password"]:
-        return RedirectResponse(url="/admin", status_code=303)
+        return RedirectResponse(url="/operator", status_code=303)
 
-    # Передаем сообщение об ошибке через параметр строки
-    return RedirectResponse(url="/login?error=Неверный+логин+или+пароль", status_code=303)
+    return RedirectResponse(url="/?error=Неверный+логин+или+пароль", status_code=303)
