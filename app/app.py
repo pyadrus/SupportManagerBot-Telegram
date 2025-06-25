@@ -1,12 +1,15 @@
-# -*- coding: utf-8 -*-
-from pathlib import Path
+# app.py
 
-import uvicorn
 from fastapi import FastAPI
-from fastapi import Request
-from fastapi.responses import HTMLResponse
+from pathlib import Path
+import uvicorn
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request
+
+# === Импорт роутера авторизации ===
+from auth import router as auth_router  # <-- Новый импорт
 
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
@@ -17,36 +20,24 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 app.mount("/app/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
+# === Регистрируем маршруты авторизации ===
+app.include_router(auth_router)  # <-- Добавляем роуты из auth.py
 
-# === Маршруты ===
 
-
+# === Маршруты основного приложения ===
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    """
-    Отображение стартовой страницы с приветствием пользователя.
-
-    :param request: Объект запроса.
-    :return: HTML-страница с приветствием.
-
-    """
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-# Новый маршрут админов
 @app.get("/admin")
 async def admin(request: Request):
-    return templates.TemplateResponse(
-        "admin.html", {"request": request}
-    )
+    return templates.TemplateResponse("admin.html", {"request": request})
 
 
-# Новый маршрут операторов
 @app.get("/operator")
 async def operator(request: Request):
-    return templates.TemplateResponse(
-        "operator.html", {"request": request}
-    )
+    return templates.TemplateResponse("operator.html", {"request": request})
 
 
 if __name__ == "__main__":
