@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- ДАННЫЕ (ВРЕМЕННОЕ РЕШЕНИЕ С ДЕМО-СТАТИСТИКОЙ) ---
     let operators = [
-        { login: 'operator1', pass: 'pass123', stats: { accepted: 142, completed: 130, rating: 4.8 } },
-        { login: 'operator2', pass: 'pass456', stats: { accepted: 98, completed: 95, rating: 4.6 } }
+        {login: 'operator1', pass: 'pass123', stats: {accepted: 142, completed: 130, rating: 4.8}},
+        {login: 'operator2', pass: 'pass456', stats: {accepted: 98, completed: 95, rating: 4.6}}
     ];
     //------------------------------------
 
@@ -13,10 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обновление даты и времени
     const datetimeElement = document.getElementById('current-datetime');
+
     function updateDateTime() {
         const now = new Date();
-        datetimeElement.textContent = now.toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
+        datetimeElement.textContent = now.toLocaleString('ru-RU', {dateStyle: 'long', timeStyle: 'short'});
     }
+
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Логика добавления оператора
-    document.getElementById('add-operator-form').addEventListener('submit', function(e) {
+    document.getElementById('add-operator-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const login = document.getElementById('new-op-login').value;
         const pass = document.getElementById('new-op-pass').value;
@@ -63,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        operators.push({ login, pass, stats: { accepted: 0, completed: 0, rating: 'n/a' } });
+        operators.push({login, pass, stats: {accepted: 0, completed: 0, rating: 'n/a'}});
         alert(`Оператор ${login} успешно добавлен!`);
         this.reset();
         addModal.style.display = 'none';
@@ -88,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Обработка кликов по списку операторов (делегирование событий)
-    document.getElementById('operators-list').addEventListener('click', function(e) {
+    document.getElementById('operators-list').addEventListener('click', function (e) {
         const target = e.target;
 
         // Клик по кнопке "Удалить"

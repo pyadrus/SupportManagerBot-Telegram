@@ -41,8 +41,14 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* --- Заголовок чата --- */
@@ -74,6 +80,7 @@ body {
     color: #64748b;
     transition: color 0.3s;
 }
+
 .requests-icon:hover {
     color: var(--primary-color);
 }
@@ -102,6 +109,7 @@ body {
     font-weight: 600;
     transition: all 0.3s;
 }
+
 .logout-btn:hover {
     background-color: var(--danger-color);
     color: var(--white);
@@ -129,8 +137,14 @@ body {
 }
 
 @keyframes popIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .user-message {
@@ -148,14 +162,19 @@ body {
     border-bottom-right-radius: 4px;
 }
 
-.message p { margin: 0 0 5px 0; }
+.message p {
+    margin: 0 0 5px 0;
+}
 
 .timestamp {
     font-size: 12px;
     color: #94a3b8;
     align-self: flex-end;
 }
-.operator-message .timestamp { color: rgba(255,255,255,0.7); }
+
+.operator-message .timestamp {
+    color: rgba(255, 255, 255, 0.7);
+}
 
 /* --- Подвал с полем ввода --- */
 .chat-footer {
@@ -175,6 +194,7 @@ body {
     font-size: 16px;
     transition: all 0.3s;
 }
+
 #message-input:focus {
     outline: none;
     border-color: var(--primary-color);
@@ -191,6 +211,7 @@ body {
     font-weight: 600;
     transition: all 0.3s;
 }
+
 #send-button:hover {
     background-color: var(--success-hover);
     transform: scale(1.05);
@@ -201,8 +222,10 @@ body {
     display: none;
     position: fixed;
     z-index: 1000;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(15, 23, 42, 0.5); /* полупрозрачный темный фон */
     backdrop-filter: blur(4px);
     animation: fadeIn 0.3s;
@@ -215,14 +238,20 @@ body {
     width: 90%;
     max-width: 650px;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes slideIn {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modal-header {
@@ -233,7 +262,12 @@ body {
     background: var(--white);
     border-bottom: 1px solid var(--border-color);
 }
-.modal-header h2 { margin: 0; font-size: 20px; color: var(--text-color); }
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-color);
+}
 
 .back-button {
     background: transparent;
@@ -246,6 +280,7 @@ body {
     font-weight: 600;
     transition: all 0.3s;
 }
+
 .back-button:hover {
     background-color: #f1f5f9;
     border-color: #94a3b8;
@@ -268,9 +303,10 @@ body {
     align-items: center;
     transition: all 0.3s;
 }
+
 .request-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
     border-color: var(--primary-color);
 }
 
@@ -278,8 +314,14 @@ body {
     margin: 4px 0;
     line-height: 1.6;
 }
-.request-details p:last-child { margin-bottom: 0; }
-.request-details strong { color: var(--text-color); }
+
+.request-details p:last-child {
+    margin-bottom: 0;
+}
+
+.request-details strong {
+    color: var(--text-color);
+}
 
 .accept-btn {
     padding: 10px 20px;
@@ -292,6 +334,7 @@ body {
     white-space: nowrap;
     transition: all 0.3s;
 }
+
 .accept-btn:hover {
     background-color: var(--primary-hover);
     transform: scale(1.05);
