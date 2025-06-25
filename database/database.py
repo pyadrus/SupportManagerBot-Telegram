@@ -31,25 +31,34 @@ class DataBase:
             await conn.execute("PRAGMA optimize")
             # Создаём таблицу пользователей, если она ещё не существует
             # Хранит ID пользователя и его язык (для мультиязычности)
-            await conn.execute("""CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, lang TEXT)""")
+            await conn.execute("""CREATE TABLE IF NOT EXISTS users
+                                  (
+                                      user_id INTEGER PRIMARY KEY,
+                                      lang    TEXT
+                                  )""")
             # Таблица статусов обращений. Используется как справочник (статусы: "открыт", "в обработке", "закрыт" и т.д.)
             await conn.execute(
-                """CREATE TABLE IF NOT EXISTS statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT UNIQUE)""")
+                """CREATE TABLE IF NOT EXISTS statuses
+                   (
+                       id     INTEGER PRIMARY KEY AUTOINCREMENT,
+                       status TEXT UNIQUE
+                   )""")
             # Основная таблица обращений (тикетов)
             # Ссылается на пользователей и статусы через внешние ключи
             await conn.execute("""
-                CREATE TABLE IF NOT EXISTS appeals (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER,                   -- кто создал обращение
-                    manager_id INTEGER,                -- кто из менеджеров его обрабатывает
-                    status_id INTEGER DEFAULT 1,       -- текущий статус (по умолчанию — первый статус)
-                    rating INTEGER,                    -- оценка после закрытия обращения
-                    last_message_at TEXT,              -- время последнего сообщения
-                    FOREIGN KEY(user_id) REFERENCES users(user_id),
-                    FOREIGN KEY(manager_id) REFERENCES users(user_id),
-                    FOREIGN KEY(status_id) REFERENCES statuses(id)
-                )
-            """)
+                               CREATE TABLE IF NOT EXISTS appeals
+                               (
+                                   id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                                   user_id         INTEGER,           -- кто создал обращение
+                                   manager_id      INTEGER,           -- кто из менеджеров его обрабатывает
+                                   status_id       INTEGER DEFAULT 1, -- текущий статус (по умолчанию — первый статус)
+                                   rating          INTEGER,           -- оценка после закрытия обращения
+                                   last_message_at TEXT,              -- время последнего сообщения
+                                   FOREIGN KEY (user_id) REFERENCES users (user_id),
+                                   FOREIGN KEY (manager_id) REFERENCES users (user_id),
+                                   FOREIGN KEY (status_id) REFERENCES statuses (id)
+                               )
+                               """)
             # Добавляем стандартные статусы в таблицу statuses (например: 'open', 'closed')
             await self.add_statuses()
             # Сохраняем изменения в базе данных
@@ -64,7 +73,8 @@ class DataBase:
             conn = await self.open()
             statuses = ["В ожидании", "В обработке", "Закрыто"]
             for status in statuses:
-                await conn.execute("""INSERT OR IGNORE INTO statuses (status) VALUES (?)""", (status,))
+                await conn.execute("""INSERT OR IGNORE INTO statuses (status)
+                                      VALUES (?)""", (status,))
             await conn.commit()
             logger.info("Статусы добавлены")
         except Exception as e:
@@ -85,7 +95,9 @@ class DataBase:
         try:
             conn = await self.open()
             await conn.execute(
-                """INSERT INTO users (user_id, lang) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET lang=excluded.lang""",
+                """INSERT INTO users (user_id, lang)
+                   VALUES (?, ?)
+                   ON CONFLICT(user_id) DO UPDATE SET lang=excluded.lang""",
                 (user_id, lang))
             await conn.commit()
         except Exception as e:
@@ -133,7 +145,8 @@ class DataBase:
                 logger.critical(f"Отсутствует status_id = {status_id}")
                 status_id = 1
 
-            cursor = await conn.execute("""INSERT INTO appeals (user_id, status_id) VALUES (?, ?)""",
+            cursor = await conn.execute("""INSERT INTO appeals (user_id, status_id)
+                                           VALUES (?, ?)""",
                                         (user_id, status_id))
             appeal_id = cursor.lastrowid
             await conn.commit()
