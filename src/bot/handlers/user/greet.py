@@ -8,7 +8,7 @@ from loguru import logger
 from src.bot.keyboards.keyboards import choose_lang, start, admin_keyboard
 from src.bot.middlewares.middlewares import AdminFilter
 from src.bot.system.dispatcher import router
-from src.core.database.database import db, register_user
+from src.core.database.database import register_user, set_user_lang
 
 
 @router.message(CommandStart())
@@ -24,7 +24,7 @@ async def cmd_start(message: Message):
             "last_name": message.from_user.last_name,
             "username": message.from_user.username,
             "chat_id": str(message.chat.id),  # chat.id как строка
-            "date": message.date  # ← Правильное обращение к дате
+            "date": message.date  # DateTime object from aiogram
         }
 
         register_user(user_data)
@@ -43,7 +43,7 @@ async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
     try:
         lang = call.data.split('-')[1]
         logger.info(f'Выбран язык {lang} - {call.from_user.id}')
-        await db.add_user(call.from_user.id, lang)
+        set_user_lang(call.from_user.id, lang)
         await call.message.edit_text(
             "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨" if lang == 'tj' else "Чем могу помочь, путник? ✨",
             reply_markup=start(lang))

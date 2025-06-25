@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from aiogram.filters import Filter
 from aiogram.types import Message
+from loguru import logger
 
 from src.core.config.config import ADMIN
-from src.core.database.database import db
-from loguru import logger
+from src.core.database.database import check_manager_active_appeal, check_user_active_appeal
 
 
 class AdminFilter(Filter):
@@ -12,26 +12,29 @@ class AdminFilter(Filter):
 
     async def __call__(self, message: Message) -> bool:
         try:
-            return True if message.from_user.id == ADMIN else False
+            return message.from_user.id == ADMIN
         except Exception as e:
             logger.exception(e)
+            return False
 
 
 class ManagerAppealsFilter(Filter):
-    """Проверка на наличие активных обращений"""
+    """Проверка на наличие активных обращений менеджера"""
 
     async def __call__(self, message: Message) -> bool:
         try:
-            return await db.check_manager_active_appeal(message.from_user.id)
+            return check_manager_active_appeal(message.from_user.id)
         except Exception as e:
             logger.exception(e)
+            return False
 
 
 class UserAppealsFilter(Filter):
-    """Проверка на наличие активных обращений"""
+    """Проверка на наличие активных обращений пользователя"""
 
     async def __call__(self, message: Message) -> bool:
         try:
-            return await db.check_user_active_appeal(message.from_user.id)
+            return check_user_active_appeal(message.from_user.id)
         except Exception as e:
             logger.exception(e)
+            return False
