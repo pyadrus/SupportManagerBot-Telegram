@@ -5,7 +5,7 @@ from typing import Union
 import aiosqlite
 from loguru import logger
 
-from config import DB_NAME
+from src.bot.bot import DB_NAME
 
 
 class DataBase:

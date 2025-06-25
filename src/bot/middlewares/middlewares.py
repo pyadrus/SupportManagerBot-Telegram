@@ -2,8 +2,8 @@
 from aiogram.filters import Filter
 from aiogram.types import Message
 
-from config import ADMIN
-from database.database import db
+from src.bot.bot import ADMIN
+from src.core.database.database import db
 
 
 class AdminFilter(Filter):

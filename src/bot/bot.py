@@ -4,14 +4,14 @@ import logging
 
 from loguru import logger
 
-from database.database import db
-from dispatcher import dp, bot
-from handlers.admin.admin import register_handlers_admin
-from handlers.manager.group import register_manager_handlers_group
-from handlers.user.greet import register_commands
-from handlers.user.user import register_user_handler
+from src.core.database.database import db
+from src.bot.system.dispatcher import dp, bot
+from src.bot.bot import register_handlers_admin
+from src.bot.bot import register_manager_handlers_group
+from src.bot.bot import register_commands
+from src.bot.bot import register_user_handler
 
-logger.add("log/log.log")
+logger.add("../../log/log.log")
 
 
 async def on_startup():

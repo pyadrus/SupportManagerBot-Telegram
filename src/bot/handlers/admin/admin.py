@@ -6,10 +6,10 @@ from aiogram import F
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from database.database import DataBase
-from dispatcher import router, bot
-from keyboards.keyboards import set_rating, stat_period, admin_keyboard
-from middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
+from src.core.database.database import DataBase
+from src.bot.bot import router, bot
+from src.bot.bot import set_rating, stat_period, admin_keyboard
+from src.bot.bot import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 
 close_timers = {}
 

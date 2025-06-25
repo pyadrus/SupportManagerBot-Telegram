@@ -5,11 +5,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from database.database import db
-from dispatcher import router
-from keyboards.keyboards import choose_lang, admin_keyboard
-from keyboards.keyboards import start
-from middlewares import AdminFilter
+from src.core.database.database import db
+from src.bot.bot import router
+from src.bot.bot import choose_lang, admin_keyboard
+from src.bot.bot import start
+from src.bot.bot import AdminFilter
 
 
 @router.message(CommandStart())
