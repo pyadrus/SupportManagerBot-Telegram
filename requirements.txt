@@ -31,3 +31,7 @@ logging~=0.4.9.6
 pathlib~=1.0.1
 pydantic-settings~=2.9.1
 loguru~=0.7.3
+uvicorn~=0.34.3
+fastapi~=0.115.13
+starlette~=0.46.2
+dotenv~=0.9.9
