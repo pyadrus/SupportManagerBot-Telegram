@@ -14,33 +14,33 @@ from src.core.database.database import db
 
 
 @router.callback_query(F.data == 'accept_appeal')
-async def accept_appeal(call: CallbackQuery, state: FSMContext):
+async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
-        manager = await db.get_user(call.from_user.id)
-        if await db.check_manager_active_appeal(call.from_user.id):
-            await call.answer("У Вас есть активное обращение", show_alert=True)
+        manager = await db.get_user(callback_query.from_user.id)
+        if await db.check_manager_active_appeal(callback_query.from_user.id):
+            await callback_query.answer("У Вас есть активное обращение", show_alert=True)
         elif not manager:
-            await call.answer("Вы не зарегистрированы в боте", show_alert=True)
+            await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
         else:
-            text = call.message.html_text
+            text = callback_query.message.html_text
             appeal_id = extract_appeal_id(text)
             if appeal_id:
                 appeal = await db.get_appeal(id=appeal_id)
-                if appeal['user_id'] == call.from_user.id:
-                    await call.answer("Вы не можете принять свою заявку", True)
+                if appeal['user_id'] == callback_query.from_user.id:
+                    await callback_query.answer("Вы не можете принять свою заявку", True)
                     return
-                await call.message.edit_text(
-                    f"{text}\n\n🔥 Заявка принята {f'@{call.from_user.username}' if call.from_user.username else f'<code>{call.from_user.id}</code>'}\n🕛 Дата принятия: <code>{datetime.now().strftime('%d.%m.%Y %H:%M:%S')}</code>")
-                await bot.send_message(call.from_user.id, f"Вы приняли заявку:\n{text}",
+                await callback_query.message.edit_text(
+                    f"{text}\n\n🔥 Заявка принята {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}\n🕛 Дата принятия: <code>{datetime.now().strftime('%d.%m.%Y %H:%M:%S')}</code>")
+                await bot.send_message(callback_query.from_user.id, f"Вы приняли заявку:\n{text}",
                                        reply_markup=close_appeal(appeal_id))
                 client_lang = await db.get_user_lang(appeal['user_id'])
                 await bot.send_message(appeal['user_id'],
                                        "🤝 <b>Мутахассис ба дархости шумо пайваст шуд.</b> Шумо метавонед оғоз кунед ✨" if client_lang == "tj" else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨")
-                await db.update_appeal_data(appeal_id, status_id=2, manager_id=call.from_user.id)
+                await db.update_appeal_data(appeal_id, status_id=2, manager_id=callback_query.from_user.id)
             else:
-                await call.message.edit_text("В обращении не найден id")
+                await callback_query.message.edit_text("В обращении не найден id")
     except Exception as e:
-        logger.error(f"Ошибка принятия заявки: {e} - {call.message.chat.id}")
+        logger.error(f"Ошибка принятия заявки: {e} - {callback_query.message.chat.id}")
     finally:
         await state.clear()
 
