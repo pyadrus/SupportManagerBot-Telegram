@@ -8,3 +8,7 @@ class StartAppealStates(StatesGroup):
     question = State()
     edit_type = State()  # fio, phone, question
     edit = State()  # Измененная информация
+
+
+class GrantingStates(StatesGroup):
+    user_id = State()  # id пользователя

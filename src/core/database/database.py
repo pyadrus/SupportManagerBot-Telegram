@@ -15,6 +15,49 @@ class BaseModel(Model):
         database = db
 
 
+"""Работа с выдачей прав операторам"""
+
+
+class User(BaseModel):
+    user_id = IntegerField(primary_key=True)
+    lang = CharField(null=True)
+
+
+class UserRole(BaseModel):
+    user = ForeignKeyField(User, backref="roles", unique=True)  # Один пользователь — одна запись
+    role = CharField(default="user")  # 'user', 'operator', 'admin'
+    password = CharField(null=True)  # Пароль для веб-авторизации
+    created_at = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = "user_roles"
+
+
+def set_user_role(user_id, role, password):
+    """
+    Устанавливает или обновляет роль пользователя.
+    :param user_id: ID Telegram пользователя
+    :param role: роль (user, operator, admin)
+    :param password: опциональный пароль
+    """
+    try:
+        UserRole.insert(
+            user=user_id,
+            role=role,
+            password=password
+        ).on_conflict(
+            conflict_target=[UserRole.user],
+            preserve=[UserRole.role, UserRole.password]
+        ).execute()
+
+        logger.info(f"Роль '{role}' установлена для пользователя {user_id}")
+    except Exception as e:
+        logger.error(f"Ошибка установки роли для {user_id}: {e}")
+
+
+"""Работа с базой данных"""
+
+
 class Person(BaseModel):
     """
     Хранит информацию о пользователях, запустивших Telegram-бота.
