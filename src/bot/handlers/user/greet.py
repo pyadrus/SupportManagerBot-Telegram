@@ -23,7 +23,6 @@ async def cmd_start(message: Message):
             "first_name": message.from_user.first_name,
             "last_name": message.from_user.last_name,
             "username": message.from_user.username,
-            "chat_id": str(message.chat.id),  # chat.id как строка
             "date": message.date  # DateTime object from aiogram
         }
 

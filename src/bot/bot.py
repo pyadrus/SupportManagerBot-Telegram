@@ -9,7 +9,7 @@ from src.bot.handlers.manager.group import register_manager_handlers_group
 from src.bot.handlers.user.greet import register_commands
 from src.bot.handlers.user.user import register_user_handler
 from src.bot.system.dispatcher import dp, bot
-from src.core.database.database import db, Person
+from src.core.database.database import Person, User, Status, Appeal, db
 
 logger.add("log/log.log")
 
@@ -17,7 +17,16 @@ logger.add("log/log.log")
 async def on_startup():
     try:
         bot_data = await bot.get_me()
-        db.create_tables([Person])  # Создание таблицы в базе данных
+
+        with db:  # Создание таблиц в базе данных
+            # Настраиваем параметры SQLite для производительности
+            db.create_tables([Person, User, Status, Appeal])
+            # Добавляем стандартные статусы
+            statuses = ["В ожидании", "В обработке", "Закрыто"]
+            for status in statuses:
+                Status.get_or_create(status=status)
+            logger.info("Таблицы успешно созданы или уже существуют, статусы добавлены")
+
         logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
     except Exception as e:
         logger.exception(f'Ошибка запуска: {e}')

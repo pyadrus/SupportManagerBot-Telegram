@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# src/core/database/models.py
 from datetime import datetime
 from typing import Optional, Union
 from loguru import logger
@@ -10,9 +9,11 @@ from src.core.config.config import DB_NAME
 # Настраиваем синхронную базу данных SQLite
 db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
+
 class BaseModel(Model):
     class Meta:
         database = db
+
 
 class Person(BaseModel):
     """
@@ -22,42 +23,28 @@ class Person(BaseModel):
     first_name = CharField(null=True)  # Имя пользователя
     last_name = CharField(null=True)  # Фамилия пользователя
     username = CharField(null=True)  # Telegram username
-    chat_id = CharField(null=True)  # ID чата или хэш
-    created_at = DateTimeField()  # Время первого запуска
+    created_at = DateTimeField()  # Время запуска
 
     class Meta:
         table_name = "registered_users_start"
+
 
 class User(BaseModel):
     user_id = IntegerField(primary_key=True)
     lang = CharField(null=True)  # Язык пользователя
 
+
 class Status(BaseModel):
     status = CharField(unique=True)
+
 
 class Appeal(BaseModel):
     user = ForeignKeyField(User, backref="appeals")  # Кто создал обращение
     manager = ForeignKeyField(User, null=True, backref="managed_appeals")  # Кто обрабатывает
     status = ForeignKeyField(Status, backref="tickets", default=1)  # Статус
     rating = IntegerField(null=True)  # Оценка
-    last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
+    last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
 
-def init_db():
-    """Создаёт таблицы при первом запуске и добавляет стандартные статусы"""
-    with db:
-        # Настраиваем параметры SQLite для производительности
-        db.execute_sql("PRAGMA journal_mode=WAL")
-        db.execute_sql("PRAGMA synchronous=NORMAL")
-        db.execute_sql("PRAGMA optimize")
-
-        # Создаём таблицы
-        db.create_tables([Person, User, Status, Appeal])
-
-        # Добавляем стандартные статусы
-        statuses = ["В ожидании", "В обработке", "Закрыто"]
-        for status in statuses:
-            Status.get_or_create(status=status)
-        logger.info("Таблицы успешно созданы или уже существуют, статусы добавлены")
 
 def register_user(user_data):
     """Регистрирует пользователя в БД на основе переданных данных"""
@@ -68,7 +55,6 @@ def register_user(user_data):
                 "first_name": user_data["first_name"],
                 "last_name": user_data["last_name"],
                 "username": user_data["username"],
-                "chat_id": str(user_data["chat_id"]),
                 "created_at": user_data["date"]
             }
         )
@@ -77,6 +63,7 @@ def register_user(user_data):
             defaults={"lang": user_data.get("lang", None)}
         )
 
+
 def set_user_lang(user_id: int, lang: str):
     """Устанавливает язык для пользователя"""
     with db:
@@ -84,6 +71,7 @@ def set_user_lang(user_id: int, lang: str):
             conflict_target=[User.user_id],
             preserve=[User.lang]
         ).execute()
+
 
 def get_user_lang(user_id: int) -> Optional[str]:
     """Получает язык пользователя"""
@@ -95,6 +83,7 @@ def get_user_lang(user_id: int) -> Optional[str]:
         logger.error(f"Ошибка получения языка пользователя {user_id}: {e}")
         return None
 
+
 def get_status_name(status_id: int) -> str:
     """Получает название статуса по его ID"""
     try:
@@ -104,6 +93,7 @@ def get_status_name(status_id: int) -> str:
     except Exception as e:
         logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
         return ""
+
 
 def create_appeal(user_id: int, status_id: int = 1) -> int:
     """Создаёт обращение для пользователя"""
@@ -118,6 +108,7 @@ def create_appeal(user_id: int, status_id: int = 1) -> int:
     except Exception as e:
         logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
         return 0
+
 
 def get_appeal(**kwargs) -> Union[dict, list[dict]]:
     """Получает обращение по фильтрам"""
@@ -146,6 +137,7 @@ def get_appeal(**kwargs) -> Union[dict, list[dict]]:
         logger.error(f"Ошибка получения обращения: {e}")
         return {}
 
+
 def update_appeal(appeal_id: int, **kwargs):
     """Обновляет обращение"""
     try:
@@ -153,6 +145,7 @@ def update_appeal(appeal_id: int, **kwargs):
             Appeal.update(**kwargs).where(Appeal.id == appeal_id).execute()
     except Exception as e:
         logger.error(f"Ошибка обновления обращения {appeal_id}: {e}")
+
 
 def check_user_active_appeal(user_id: int) -> bool:
     """Проверяет, есть ли у пользователя активное обращение"""
@@ -166,6 +159,7 @@ def check_user_active_appeal(user_id: int) -> bool:
     except Exception as e:
         logger.error(f"Ошибка проверки активных обращений пользователя {user_id}: {e}")
         return False
+
 
 def check_manager_active_appeal(manager_id: int) -> bool:
     """Проверяет, есть ли у менеджера активное обращение"""
