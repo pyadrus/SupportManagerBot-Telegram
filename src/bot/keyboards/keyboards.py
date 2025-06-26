@@ -26,11 +26,6 @@ def start(lang: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=btns)
 
 
-def admin_keyboard() -> InlineKeyboardMarkup:
-    btns = [[InlineKeyboardButton(text="📊 Статистика", callback_data="statistic")]]
-    return InlineKeyboardMarkup(inline_keyboard=btns)
-
-
 def stat_period() -> InlineKeyboardMarkup:
     periods = {"1": "День", "7": "Неделя", "30": "Месяц", "90": "Квартал", "183": "Полгода", "365": "Год"}
     btns = []
