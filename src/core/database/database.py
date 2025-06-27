@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from typing import Optional, Union
+
 from loguru import logger
 from peewee import *  # https://docs.peewee-orm.com/en/latest/index.html
 
@@ -37,7 +38,9 @@ class Status(BaseModel):
 
 class Appeal(BaseModel):
     user = ForeignKeyField(User, backref="appeals")  # Кто создал обращение
-    manager = ForeignKeyField(User, null=True, backref="managed_appeals")  # Кто обрабатывает
+    manager = ForeignKeyField(
+        User, null=True, backref="managed_appeals"
+    )  # Кто обрабатывает
     status = ForeignKeyField(Status, backref="tickets", default=1)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
@@ -47,8 +50,7 @@ def set_user_lang(user_id: int, lang: str):
     """Устанавливает язык для пользователя"""
     with db:
         User.insert(user_id=user_id, lang=lang).on_conflict(
-            conflict_target=[User.user_id],
-            preserve=[User.lang]
+            conflict_target=[User.user_id], preserve=[User.lang]
         ).execute()
 
 
@@ -107,7 +109,7 @@ def get_appeal(**kwargs) -> Union[dict, list[dict]]:
                     "manager_id": appeal.manager.user_id if appeal.manager else None,
                     "status_id": appeal.status.id if appeal.status else None,
                     "rating": appeal.rating,
-                    "last_message_at": appeal.last_message_at
+                    "last_message_at": appeal.last_message_at,
                 }
                 result.append(appeal_dict)
 
@@ -130,10 +132,11 @@ def check_user_active_appeal(user_id: int) -> bool:
     """Проверяет, есть ли у пользователя активное обращение"""
     try:
         with db:
-            count = Appeal.select().where(
-                Appeal.user == user_id,
-                Appeal.status.in_([1, 2])
-            ).count()
+            count = (
+                Appeal.select()
+                .where(Appeal.user == user_id, Appeal.status.in_([1, 2]))
+                .count()
+            )
             return count > 0
     except Exception as e:
         logger.error(f"Ошибка проверки активных обращений пользователя {user_id}: {e}")
@@ -144,10 +147,11 @@ def check_manager_active_appeal(manager_id: int) -> bool:
     """Проверяет, есть ли у менеджера активное обращение"""
     try:
         with db:
-            count = Appeal.select().where(
-                Appeal.manager == manager_id,
-                Appeal.status.in_([1, 2])
-            ).count()
+            count = (
+                Appeal.select()
+                .where(Appeal.manager == manager_id, Appeal.status.in_([1, 2]))
+                .count()
+            )
             return count > 0
     except Exception as e:
         logger.error(f"Ошибка проверки активных обращений менеджера {manager_id}: {e}")
@@ -176,10 +180,10 @@ def set_user_role(stored_data):
     db.connect()  # Подключаемся к базе данных
     db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
     stored_data = AuthorizationData(
-        user_id=stored_data['user_id'],
-        username=stored_data['username'],
-        password=stored_data['password'],
-        date_issue=datetime.now()
+        user_id=stored_data["user_id"],
+        username=stored_data["username"],
+        password=stored_data["password"],
+        date_issue=datetime.now(),
     )
     stored_data.save()  # Сохраняем данные в базу данных
 
@@ -191,12 +195,14 @@ def get_all_authorization_data():
     db.connect()  # Подключаемся к базе данных
     data = []
     for entry in AuthorizationData.select():
-        data.append({
-            'user_id': entry.user_id,
-            'username': entry.username,
-            'password': entry.password,
-            'date_issue': entry.date_issue
-        })
+        data.append(
+            {
+                "user_id": entry.user_id,
+                "username": entry.username,
+                "password": entry.password,
+                "date_issue": entry.date_issue,
+            }
+        )
     db.close()
     return data
 
@@ -208,6 +214,7 @@ class Person(Model):
     """
     Хранит информацию о пользователях, запустивших Telegram-бота вызвав команду /start.
     """
+
     id_user = IntegerField(null=True)  # Telegram ID пользователя Telegram
     first_name = CharField(null=True)  # Telegram Имя пользователя
     last_name = CharField(null=True)  # Telegram Фамилия пользователя

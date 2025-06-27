@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- ДАННЫЕ (ВРЕМЕННОЕ РЕШЕНИЕ С ДЕМО-СТАТИСТИКОЙ) ---
     let operators = [
-        {login: 'operator1', pass: 'pass123', stats: {accepted: 142, completed: 130, rating: 4.8}},
-        {login: 'operator2', pass: 'pass456', stats: {accepted: 98, completed: 95, rating: 4.6}}
+        { login: 'operator1', pass: 'pass123', stats: { accepted: 142, completed: 130, rating: 4.8 } },
+        { login: 'operator2', pass: 'pass456', stats: { accepted: 98, completed: 95, rating: 4.6 } }
     ];
     //------------------------------------
 
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateDateTime() {
         const now = new Date();
-        datetimeElement.textContent = now.toLocaleString('ru-RU', {dateStyle: 'long', timeStyle: 'short'});
+        datetimeElement.textContent = now.toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
     }
 
     updateDateTime();
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        operators.push({login, pass, stats: {accepted: 0, completed: 0, rating: 'n/a'}});
+        operators.push({ login, pass, stats: { accepted: 0, completed: 0, rating: 'n/a' } });
         alert(`Оператор ${login} успешно добавлен!`);
         this.reset();
         addModal.style.display = 'none';

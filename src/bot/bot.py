@@ -9,8 +9,8 @@ from src.bot.handlers.admin.granting_rights import register_granting_rights_hand
 from src.bot.handlers.operator.group import register_manager_handlers_group
 from src.bot.handlers.user.greet import register_commands
 from src.bot.handlers.user.user import register_user_handler
-from src.bot.system.dispatcher import dp, bot
-from src.core.database.database import User, Status, Appeal, db
+from src.bot.system.dispatcher import bot, dp
+from src.core.database.database import Appeal, Status, User, db
 
 logger.add("log/log.log")
 
@@ -28,18 +28,18 @@ async def on_startup():
                 Status.get_or_create(status=status)
             logger.info("Таблицы успешно созданы или уже существуют, статусы добавлены")
 
-        logger.info(f'Бот @{bot_data.username} - {bot_data.full_name} запущен')
+        logger.info(f"Бот @{bot_data.username} - {bot_data.full_name} запущен")
     except Exception as e:
-        logger.exception(f'Ошибка запуска: {e}')
+        logger.exception(f"Ошибка запуска: {e}")
         raise
 
 
 async def on_shutdown():
     try:
-        logger.info('Бот остановлен')
+        logger.info("Бот остановлен")
         await bot.session.close()  # Закрытие сессии бота
     except Exception as e:
-        logger.exception(f'Ошибка при остановке: {e}')
+        logger.exception(f"Ошибка при остановке: {e}")
 
 
 async def main():
@@ -62,7 +62,7 @@ async def main():
         await dp.start_polling(bot)
 
     except Exception as e:
-        logger.exception(f'Ошибка при запуске бота: {e}')
+        logger.exception(f"Ошибка при запуске бота: {e}")
     finally:
         await bot.session.close()
 

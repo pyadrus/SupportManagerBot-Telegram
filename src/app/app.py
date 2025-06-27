@@ -33,6 +33,7 @@ async def admin_page(request: Request):
 
 # === Убираем /login, делаем всё на главной ===
 
+
 @app.get("/", response_class=HTMLResponse)
 async def login_page(request: Request, error: Optional[str] = None):
     """
@@ -40,14 +41,13 @@ async def login_page(request: Request, error: Optional[str] = None):
     """
     # Получаем данные авторизации из базы данных src/core/database/database.db
 
-    return templates.TemplateResponse("index.html", {"request": request, "error": error})
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "error": error}
+    )
 
 
 @app.post("/login")
-async def login(
-    username: str = Form(...),
-    password: str = Form(...)
-):
+async def login(username: str = Form(...), password: str = Form(...)):
     """
     Проверяет логин и пароль.
     Если верные — перенаправляет на /operator или /admin.
@@ -60,7 +60,7 @@ async def login(
     # Поиск пользователя с совпадающим username и password
     user_match = None
     for entry in data:
-        if entry['username'] == username and entry['password'] == password:
+        if entry["username"] == username and entry["password"] == password:
             user_match = entry
             break
 

@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 import secrets
 
 from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from src.bot.states.states import GrantingStates
-from src.bot.system.dispatcher import router, bot
+from src.bot.system.dispatcher import bot, router
 from src.core.database.database import set_user_role
 
 
@@ -18,12 +19,12 @@ def generate_six_digit_password() -> str:
 """Выдача прав оператору"""
 
 
-@router.callback_query(F.data == 'give_operator')
+@router.callback_query(F.data == "give_operator")
 async def give_operator(callback_query: CallbackQuery, state: FSMContext):
     """Запрашивает ID пользователя для выдачи прав оператора"""
     await bot.send_message(
         callback_query.from_user.id,
-        text="Напишите ID пользователя Telegram, которому хотите выдать права оператора:"
+        text="Напишите ID пользователя Telegram, которому хотите выдать права оператора:",
     )
     await state.set_state(GrantingStates.user_id)
 
@@ -36,11 +37,7 @@ async def process_user_id(message: Message, state: FSMContext):
     username = "operator"
     # Генерируем пароль и устанавливаем роль
     password = generate_six_digit_password()
-    stored_data = {
-        "user_id": user_id,
-        "username": username,
-        "password": password
-    }
+    stored_data = {"user_id": user_id, "username": username, "password": password}
     set_user_role(stored_data)  # Сохраняем данные в БД src/core/database/database.db
     # Отправляем результат админу
     await message.answer(
@@ -53,5 +50,5 @@ async def process_user_id(message: Message, state: FSMContext):
 
 def register_granting_rights_handlers():
     """Регистрирует обработчики для выдачи прав оператору"""
-    router.callback_query.register(give_operator, F.data == 'give_operator')
+    router.callback_query.register(give_operator, F.data == "give_operator")
     router.message.register(process_user_id, StateFilter(GrantingStates.user_id))
