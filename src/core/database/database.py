@@ -193,6 +193,7 @@ def set_user_role(stored_data):
 
 def get_all_authorization_data():
     db.connect()  # Подключаемся к базе данных
+    db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
     data = []
     for entry in AuthorizationData.select():
         data.append(

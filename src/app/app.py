@@ -53,26 +53,28 @@ async def login(username: str = Form(...), password: str = Form(...)):
     Если верные — перенаправляет на /operator или /admin.
     Иначе — возвращает на главную с ошибкой.
     """
+    try:
+        data = get_all_authorization_data()
+        logger.debug("✅ Данные из БД: {}", data)
 
-    data = get_all_authorization_data()
-    logger.debug("✅ Данные из БД: {}", data)
+        # Поиск пользователя с совпадающим username и password
+        user_match = None
+        for entry in data:
+            if entry["username"] == username and entry["password"] == password:
+                user_match = entry
+                break
 
-    # Поиск пользователя с совпадающим username и password
-    user_match = None
-    for entry in data:
-        if entry["username"] == username and entry["password"] == password:
-            user_match = entry
-            break
+        if user_match:
+            if username == "admin":
+                return RedirectResponse(url="/admin", status_code=303)
+            else:
+                return RedirectResponse(url="/operator", status_code=303)
 
-    if user_match:
-        if username == "admin":
-            return RedirectResponse(url="/admin", status_code=303)
-        else:
-            return RedirectResponse(url="/operator", status_code=303)
-
-    # Если совпадений нет
-    logger.warning("❌ Неверный логин или пароль")
-    return RedirectResponse(url="/?error=Неверный+логин+или+пароль", status_code=303)
+        # Если совпадений нет
+        logger.warning("❌ Неверный логин или пароль")
+        return RedirectResponse(url="/?error=Неверный+логин+или+пароль", status_code=303)
+    except Exception as e:
+        logger.exception(e)
 
 
 if __name__ == "__main__":
