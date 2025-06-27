@@ -12,7 +12,10 @@ from src.core.database.database import register_user, set_user_lang
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    """Отвечает на команду /start и выводит приветственное сообщение."""
+    """
+    Отвечает на команду /start и выводит приветственное сообщение пользователю. Записывает в базу данных
+    src/core/database/database.db, данные пользователя, который ввел команду /start.
+    """
     try:
         logger.info(f'Введена команда /start - {message.chat.id}')
 
@@ -24,7 +27,7 @@ async def cmd_start(message: Message):
             "username": message.from_user.username,
             "date": message.date  # DateTime object from aiogram
         }
-
+        # Записываем данные пользователя в базу данных src/core/database/database.db
         register_user(user_data)
 
         await message.answer(
@@ -51,10 +54,6 @@ async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
         await state.clear()
 
 
-
-
-
 def register_commands():
     router.message.register(cmd_start, CommandStart())
-
     router.callback_query.register(choose_lang_handler, F.data.startswith("lang-"))

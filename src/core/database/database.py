@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional, Union
 from loguru import logger
-from peewee import *
+from peewee import *  # https://docs.peewee-orm.com/en/latest/index.html
 
 from src.core.config.config import DB_NAME
 
@@ -58,23 +58,9 @@ def set_user_role(user_id, role, password):
 """Работа с базой данных"""
 
 
-class Person(BaseModel):
-    """
-    Хранит информацию о пользователях, запустивших Telegram-бота.
-    """
-    id_user = IntegerField(unique=True)  # Уникальный ID пользователя Telegram
-    first_name = CharField(null=True)  # Имя пользователя
-    last_name = CharField(null=True)  # Фамилия пользователя
-    username = CharField(null=True)  # Telegram username
-    created_at = DateTimeField()  # Время запуска
-
-    class Meta:
-        table_name = "registered_users_start"
-
-
-class User(BaseModel):
-    user_id = IntegerField(primary_key=True)
-    lang = CharField(null=True)  # Язык пользователя
+# class User(BaseModel):
+#     user_id = IntegerField(primary_key=True)
+#     lang = CharField(null=True)  # Язык пользователя
 
 
 class Status(BaseModel):
@@ -89,22 +75,7 @@ class Appeal(BaseModel):
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
 
 
-def register_user(user_data):
-    """Регистрирует пользователя в БД на основе переданных данных"""
-    with db:
-        Person.get_or_create(
-            id_user=user_data["id"],
-            defaults={
-                "first_name": user_data["first_name"],
-                "last_name": user_data["last_name"],
-                "username": user_data["username"],
-                "created_at": user_data["date"]
-            }
-        )
-        User.get_or_create(
-            user_id=user_data["id"],
-            defaults={"lang": user_data.get("lang", None)}
-        )
+
 
 
 def set_user_lang(user_id: int, lang: str):
@@ -216,3 +187,38 @@ def check_manager_active_appeal(manager_id: int) -> bool:
     except Exception as e:
         logger.error(f"Ошибка проверки активных обращений менеджера {manager_id}: {e}")
         return False
+
+
+"""Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
+
+class Person(Model):
+    """
+    Хранит информацию о пользователях, запустивших Telegram-бота вызвав команду /start.
+    """
+    id_user = IntegerField(null=True)  # Telegram ID пользователя Telegram
+    first_name = CharField(null=True)  # Telegram Имя пользователя
+    last_name = CharField(null=True)  # Telegram Фамилия пользователя
+    username = CharField(null=True)  # Telegram username
+    created_at = DateTimeField()  # Время запуска
+
+    class Meta:
+        database = db  # Модель базы данных
+        table_name = "registered_users_start"  # Имя таблицы
+
+
+def register_user(user_data) -> None:
+    """
+    Записывает данные пользователя в базу данных, который вызвал команду /start.
+
+    :param user_data: словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
+    """
+    db.connect()  # Подсоединяемся к базе данных
+    db.create_tables([Person])  # Создаем таблицу, если она не существует
+    person = Person(
+        id_user=user_data["id"],
+        first_name=user_data["first_name"],
+        last_name=user_data["last_name"],
+        username=user_data["username"],
+        created_at=user_data["date"],
+    )  # Создаем объект Person с данными пользователя
+    person.save()  # Сохраняем данные в базу данных
