@@ -7,7 +7,6 @@ from fastapi import Form
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
@@ -20,7 +19,7 @@ TEMPLATES_DIR = "templates"
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # Подключаем статику
-app.mount("/app/static", StaticFiles(directory=STATIC_DIR), name="static")
+# app.mount("/app/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # === Страница оператора ===

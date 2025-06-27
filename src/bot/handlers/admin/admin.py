@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from aiogram import F
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
@@ -204,6 +205,19 @@ async def client_answer_appeal(message: Message):
         await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
+@router.message(Command(commands=['admin']), AdminFilter())
+async def admin(message: Message):
+    """Выводит админ панель."""
+    try:
+        logger.info(f'Введена команда /admin - {message.chat.id}')
+        await message.answer(
+            f"Здравствуйте, {message.from_user.first_name}! Вы попали в админ панель",
+            reply_markup=admin_keyboard()
+        )
+    except Exception as e:
+        logger.error(f"Ошибка /admin: {e} - {message.chat.id}")
+
+
 def register_handlers_admin():
     # --- Callback handlers ---
     router.callback_query.register(ask_period, F.data == 'statistic', AdminFilter())
@@ -218,3 +232,6 @@ def register_handlers_admin():
     router.message.register(close_appeal_by_manager, ManagerAppealsFilter(), F.text.in_([
         "❌ Закрыть заявку", "❌ Пӯшидани ариза"
     ]))
+
+    # --- Command handlers ---
+    router.message.register(admin, Command(commands=['admin']), AdminFilter())

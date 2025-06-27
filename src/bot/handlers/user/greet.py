@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from aiogram import F
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.keyboards import choose_lang, start
-from src.bot.middlewares.middlewares import AdminFilter
 from src.bot.system.dispatcher import router
 from src.core.database.database import register_user, set_user_lang
 
@@ -53,20 +51,10 @@ async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
         await state.clear()
 
 
-@router.message(Command(commands=['admin']), AdminFilter())
-async def admin(message: Message):
-    """Выводит админ панель."""
-    try:
-        logger.info(f'Введена команда /admin - {message.chat.id}')
-        await message.answer(
-            f"Здравствуйте, {message.from_user.first_name}! Вы попали в админ панель",
-            reply_markup=admin_keyboard()
-        )
-    except Exception as e:
-        logger.error(f"Ошибка /admin: {e} - {message.chat.id}")
+
 
 
 def register_commands():
     router.message.register(cmd_start, CommandStart())
-    router.message.register(admin, Command(commands=['admin']), AdminFilter())
+
     router.callback_query.register(choose_lang_handler, F.data.startswith("lang-"))
