@@ -10,7 +10,7 @@ from src.bot.handlers.operator.group import register_manager_handlers_group
 from src.bot.handlers.user.greet import register_commands
 from src.bot.handlers.user.user import register_user_handler
 from src.bot.system.dispatcher import dp, bot
-from src.core.database.database import User, Status, Appeal, db, UserRole
+from src.core.database.database import User, Status, Appeal, db
 
 logger.add("log/log.log")
 
@@ -21,7 +21,7 @@ async def on_startup():
 
         with db:  # Создание таблиц в базе данных
             # Настраиваем параметры SQLite для производительности
-            db.create_tables([User, Status, Appeal, UserRole])
+            db.create_tables([User, Status, Appeal])
             # Добавляем стандартные статусы
             statuses = ["В ожидании", "В обработке", "Закрыто"]
             for status in statuses:

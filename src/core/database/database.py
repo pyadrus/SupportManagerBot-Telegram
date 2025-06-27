@@ -23,38 +23,6 @@ class User(BaseModel):
     lang = CharField(null=True)
 
 
-class UserRole(BaseModel):
-    user = ForeignKeyField(User, backref="roles", unique=True)  # Один пользователь — одна запись
-    role = CharField(default="user")  # 'user', 'operator', 'admin'
-    password = CharField(null=True)  # Пароль для веб-авторизации
-    created_at = DateTimeField(default=datetime.now)
-
-    class Meta:
-        table_name = "user_roles"
-
-
-def set_user_role(user_id, role, password):
-    """
-    Устанавливает или обновляет роль пользователя.
-    :param user_id: ID Telegram пользователя
-    :param role: роль (user, operator, admin)
-    :param password: опциональный пароль
-    """
-    try:
-        UserRole.insert(
-            user=user_id,
-            role=role,
-            password=password
-        ).on_conflict(
-            conflict_target=[UserRole.user],
-            preserve=[UserRole.role, UserRole.password]
-        ).execute()
-
-        logger.info(f"Роль '{role}' установлена для пользователя {user_id}")
-    except Exception as e:
-        logger.error(f"Ошибка установки роли для {user_id}: {e}")
-
-
 """Работа с базой данных"""
 
 
@@ -73,9 +41,6 @@ class Appeal(BaseModel):
     status = ForeignKeyField(Status, backref="tickets", default=1)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
-
-
-
 
 
 def set_user_lang(user_id: int, lang: str):
@@ -189,7 +154,38 @@ def check_manager_active_appeal(manager_id: int) -> bool:
         return False
 
 
+"""Выдача прав операторам"""
+
+
+class AuthorizationData(Model):
+    user_id = IntegerField(null=True)  # ID Telegram пользователя Telegram
+    username = CharField(null=True)  # Username, 'operator', 'admin'
+    password = CharField(null=True)  # Password для веб-авторизации
+    date_issue = DateTimeField(default=datetime.now)  # Дата выдачи прав
+
+    class Meta:
+        database = db  # Модель базы данных
+        table_name = "authorization_data"  # Имя таблицы
+
+
+def set_user_role(stored_data):
+    """
+    Устанавливает или обновляет роль пользователя.
+    :param stored_data: Словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
+    """
+    db.connect()  # Подключаемся к базе данных
+    db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
+    stored_data = AuthorizationData(
+        user_id=stored_data['user_id'],
+        username=stored_data['username'],
+        password=stored_data['password'],
+        date_issue=datetime.now()
+    )
+    stored_data.save()  # Сохраняем данные в базу данных
+
+
 """Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
+
 
 class Person(Model):
     """
@@ -210,7 +206,7 @@ def register_user(user_data) -> None:
     """
     Записывает данные пользователя в базу данных, который вызвал команду /start.
 
-    :param user_data: словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
+    :param user_data: Словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
     """
     db.connect()  # Подсоединяемся к базе данных
     db.create_tables([Person])  # Создаем таблицу, если она не существует
