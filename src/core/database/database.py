@@ -184,6 +184,23 @@ def set_user_role(stored_data):
     stored_data.save()  # Сохраняем данные в базу данных
 
 
+"""Чтение данных из базы данных, для проверки данных внесенных админом Telegram бота"""
+
+
+def get_all_authorization_data():
+    db.connect()  # Подключаемся к базе данных
+    data = []
+    for entry in AuthorizationData.select():
+        data.append({
+            'user_id': entry.user_id,
+            'username': entry.username,
+            'password': entry.password,
+            'date_issue': entry.date_issue
+        })
+    db.close()
+    return data
+
+
 """Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
 
 
