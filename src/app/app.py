@@ -14,12 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
-# Укажи путь к шаблонам
-TEMPLATES_DIR = "templates"
+# Путь к шаблонам
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
-
-# Подключаем статику
-# app.mount("/app/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # === Страница оператора ===
