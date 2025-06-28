@@ -179,7 +179,7 @@ def set_user_role(stored_data):
     """
     db.connect()  # Подключаемся к базе данных
     db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
-    stored_data = AuthorizationData(
+    stored_data = AuthorizationData( 
         user_id=stored_data["user_id"],
         username=stored_data["username"],
         password=stored_data["password"],
@@ -192,9 +192,10 @@ def set_user_role(stored_data):
 
 
 def get_all_authorization_data():
+    """Получение всех данных из базы данных"""
     db.connect()  # Подключаемся к базе данных
     db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
-    data = []
+    data = []  # Создаем пустой список для хранения данных
     for entry in AuthorizationData.select():
         data.append(
             {
@@ -204,8 +205,8 @@ def get_all_authorization_data():
                 "date_issue": entry.date_issue,
             }
         )
-    db.close()
-    return data
+    db.close()  # Закрываем соединение с базой данных
+    return data  # Возвращаем список данных
 
 
 """Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
@@ -222,7 +223,7 @@ class Person(Model):
     username = CharField(null=True)  # Telegram username
     created_at = DateTimeField()  # Время запуска
 
-    class Meta:
+    class Meta:  # Подключение к базе данных
         database = db  # Модель базы данных
         table_name = "registered_users_start"  # Имя таблицы
 
@@ -236,10 +237,10 @@ def register_user(user_data) -> None:
     db.connect()  # Подсоединяемся к базе данных
     db.create_tables([Person])  # Создаем таблицу, если она не существует
     person = Person(
-        id_user=user_data["id"],
-        first_name=user_data["first_name"],
-        last_name=user_data["last_name"],
-        username=user_data["username"],
-        created_at=user_data["date"],
+        id_user=user_data["id"],  # Telegram ID пользователя Telegram
+        first_name=user_data["first_name"],  # Telegram Имя пользователя
+        last_name=user_data["last_name"],  # Telegram Фамилия пользователя
+        username=user_data["username"],  # Telegram username
+        created_at=user_data["date"],  # Время запуска
     )  # Создаем объект Person с данными пользователя
     person.save()  # Сохраняем данные в базу данных
