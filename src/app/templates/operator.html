@@ -363,69 +363,69 @@
 </head>
 
 <body>
-    <div class="chat-container">
-        <header class="chat-header">
-            <div class="header-content">
-                <h1>eHukumat</h1>
-                <div id="requests-icon" class="requests-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                        <polyline points="13 2 13 9 20 9"></polyline>
-                    </svg>
-                    <span class="requests-count">3</span>
-                </div>
-            </div>
-            <button id="logout-btn" class="logout-btn">Выход</button>
-        </header>
-        <div class="chat-box" id="chat-box">
-            <div class="message user-message">
-                <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
-                <span class="timestamp">14:25</span>
-            </div>
-            <div class="message operator-message">
-                <p>Добрый день! Слушаю вас.</p>
-                <span class="timestamp">14:26</span>
+<div class="chat-container">
+    <header class="chat-header">
+        <div class="header-content">
+            <h1>eHukumat</h1>
+            <div id="requests-icon" class="requests-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                <span class="requests-count">3</span>
             </div>
         </div>
-        <footer class="chat-footer">
-            <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
-            <button id="send-button">Отправить</button>
-        </footer>
+        <button id="logout-btn" class="logout-btn">Выход</button>
+    </header>
+    <div class="chat-box" id="chat-box">
+        <div class="message user-message">
+            <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
+            <span class="timestamp">14:25</span>
+        </div>
+        <div class="message operator-message">
+            <p>Добрый день! Слушаю вас.</p>
+            <span class="timestamp">14:26</span>
+        </div>
     </div>
+    <footer class="chat-footer">
+        <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
+        <button id="send-button">Отправить</button>
+    </footer>
+</div>
 
-    <div id="requests-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Заявки в ожидании</h2>
-                <button class="back-button">&larr; Назад</button>
+<div id="requests-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Заявки в ожидании</h2>
+            <button class="back-button">&larr; Назад</button>
+        </div>
+        <div class="requests-list">
+            <div class="request-item">
+                <div class="request-details">
+                    <p><strong>Номер заявки:</strong> #1024</p>
+                    <p><strong>ФИО:</strong> Иванов Иван Иванович</p>
+                    <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
+                    <p><strong>Вопрос:</strong> Не могу отследить свой заказ.</p>
+                    <p><strong>Время:</strong> 14:30 18.06.2025</p>
+                </div>
+                <button class="accept-btn">Принять</button>
             </div>
-            <div class="requests-list">
-                <div class="request-item">
-                    <div class="request-details">
-                        <p><strong>Номер заявки:</strong> #1024</p>
-                        <p><strong>ФИО:</strong> Иванов Иван Иванович</p>
-                        <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
-                        <p><strong>Вопрос:</strong> Не могу отследить свой заказ.</p>
-                        <p><strong>Время:</strong> 14:30 18.06.2025</p>
-                    </div>
-                    <button class="accept-btn">Принять</button>
+            <div class="request-item">
+                <div class="request-details">
+                    <p><strong>Номер заявки:</strong> #1025</p>
+                    <p><strong>ФИО:</strong> Петрова Мария Сергеевна</p>
+                    <p><strong>Телефон:</strong> +7 (926) 765-43-21</p>
+                    <p><strong>Вопрос:</strong> Как вернуть товар?</p>
+                    <p><strong>Время:</strong> 14:32 18.06.2025</p>
                 </div>
-                <div class="request-item">
-                    <div class="request-details">
-                        <p><strong>Номер заявки:</strong> #1025</p>
-                        <p><strong>ФИО:</strong> Петрова Мария Сергеевна</p>
-                        <p><strong>Телефон:</strong> +7 (926) 765-43-21</p>
-                        <p><strong>Вопрос:</strong> Как вернуть товар?</p>
-                        <p><strong>Время:</strong> 14:32 18.06.2025</p>
-                    </div>
-                    <button class="accept-btn">Принять</button>
-                </div>
+                <button class="accept-btn">Принять</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="/src/apprator.script.js"></script>
+<script src="/src/apprator.script.js"></script>
 </body>
 
 </html>

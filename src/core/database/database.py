@@ -179,7 +179,7 @@ def set_user_role(stored_data):
     """
     db.connect()  # Подключаемся к базе данных
     db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
-    stored_data = AuthorizationData( 
+    stored_data = AuthorizationData(
         user_id=stored_data["user_id"],
         username=stored_data["username"],
         password=stored_data["password"],

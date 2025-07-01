@@ -126,29 +126,29 @@
 </head>
 
 <body>
-    <div class="login-container">
-        <h2>Авторизация</h2>
+<div class="login-container">
+    <h2>Авторизация</h2>
 
-        <!-- Сообщение об ошибке -->
-        {% if error %}
-        <div class="error-message">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <!-- Форма отправки -->
-        <form method="POST" action="/login">
-            <div class="input-group">
-                <label for="username">Логин</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Пароль</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Войти</button>
-        </form>
+    <!-- Сообщение об ошибке -->
+    {% if error %}
+    <div class="error-message">
+        {{ error }}
     </div>
+    {% endif %}
+
+    <!-- Форма отправки -->
+    <form method="POST" action="/login">
+        <div class="input-group">
+            <label for="username">Логин</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Войти</button>
+    </form>
+</div>
 </body>
 
 </html>
