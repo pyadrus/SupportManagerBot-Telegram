@@ -4,13 +4,15 @@ from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
 
 
 def choose_lang() -> InlineKeyboardMarkup:
-    btns = [
-        [
-            InlineKeyboardButton(text="🇹🇯 Забони тоҷикӣ", callback_data="lang-tj"),
-            InlineKeyboardButton(text="🇷🇺 Русский язык", callback_data="lang-ru"),
+    """Клавиатура выбора языка"""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🇹🇯 Забони тоҷикӣ", callback_data="lang-tj"),
+                InlineKeyboardButton(text="🇷🇺 Русский язык", callback_data="lang-ru"),
+            ]
         ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=btns)
+    )
 
 
 def start(lang: str) -> InlineKeyboardMarkup:

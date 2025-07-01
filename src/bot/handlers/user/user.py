@@ -16,8 +16,9 @@ from src.core.database.database import db
 
 @router.callback_query(F.data == 'call_manager')
 async def start_create_appeal(call: CallbackQuery, state: FSMContext):
+    """Отвечает на кнопку вызова специалиста (оператора)"""
     try:
-        lang = await db.get_user_lang(call.from_user.id)
+        lang = await db.get_user_lang(call.from_user.id)  # Получаем язык пользователя
         await call.answer()
         if await db.check_user_active_appeal(call.from_user.id):
             await call.message.answer(
@@ -34,7 +35,7 @@ async def start_create_appeal(call: CallbackQuery, state: FSMContext):
 async def fio_appeal(message: Message, state: FSMContext):
     try:
         await state.update_data(fio=message.text)
-        lang = await db.get_user_lang(message.chat.id)
+        lang = await db.get_user_lang(message.chat.id) # Получаем язык пользователя
         await message.answer(
             "📞 Бузург! Акнун рақами телефони тамосатонро ворид кунед" if lang == 'tj' else "📞 Отлично! Теперь введите ваш контактный номер телефона")
         await state.set_state(StartAppealStates.phone)

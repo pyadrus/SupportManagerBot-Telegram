@@ -46,12 +46,7 @@ class Appeal(BaseModel):
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
 
 
-def set_user_lang(user_id: int, lang: str):
-    """Устанавливает язык для пользователя"""
-    with db:
-        User.insert(user_id=user_id, lang=lang).on_conflict(
-            conflict_target=[User.user_id], preserve=[User.lang]
-        ).execute()
+
 
 
 def get_user_lang(user_id: int) -> Optional[str]:
@@ -217,15 +212,16 @@ class Person(Model):
     Хранит информацию о пользователях, запустивших Telegram-бота вызвав команду /start.
     """
 
-    id_user = IntegerField(null=True)  # Telegram ID пользователя Telegram
+    id_user = IntegerField(unique=True)  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
     first_name = CharField(null=True)  # Telegram Имя пользователя
     last_name = CharField(null=True)  # Telegram Фамилия пользователя
     username = CharField(null=True)  # Telegram username
+    lang = CharField(null=True)  # Язык пользователя
     created_at = DateTimeField()  # Время запуска
 
     class Meta:  # Подключение к базе данных
         database = db  # Модель базы данных
-        table_name = "registered_users_start"  # Имя таблицы
+        table_name = "registered_users"  # Имя таблицы
 
 
 def register_user(user_data) -> None:
@@ -236,11 +232,22 @@ def register_user(user_data) -> None:
     """
     db.connect()  # Подсоединяемся к базе данных
     db.create_tables([Person])  # Создаем таблицу, если она не существует
-    person = Person(
+
+    Person.get_or_create(
         id_user=user_data["id"],  # Telegram ID пользователя Telegram
-        first_name=user_data["first_name"],  # Telegram Имя пользователя
-        last_name=user_data["last_name"],  # Telegram Фамилия пользователя
-        username=user_data["username"],  # Telegram username
-        created_at=user_data["date"],  # Время запуска
-    )  # Создаем объект Person с данными пользователя
-    person.save()  # Сохраняем данные в базу данных
+        defaults={
+            "first_name": user_data.get("first_name"),  # Telegram Имя пользователя
+            "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
+            "username": user_data.get("username"),  # Telegram username
+            "lang": user_data.get("lang"),  # Язык пользователя
+            "created_at": user_data.get("date"),  # Время запуска
+        }
+    )
+
+"""Установка языка пользователя"""
+
+def set_user_lang(id_user: int, lang: str):
+    """Обновляет язык пользователя по Telegram ID"""
+    with db:
+        query = Person.update({Person.lang: lang}).where(Person.id_user == id_user)
+        query.execute()

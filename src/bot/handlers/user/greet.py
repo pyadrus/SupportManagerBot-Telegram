@@ -21,18 +21,19 @@ async def cmd_start(message: Message):
 
         # Формируем данные пользователя
         user_data = {
-            "id": message.from_user.id,
-            "first_name": message.from_user.first_name,
-            "last_name": message.from_user.last_name,
-            "username": message.from_user.username,
-            "date": message.date,  # DateTime object from aiogram
+            "id": message.from_user.id, # ID пользователя
+            "first_name": message.from_user.first_name, # Имя пользователя
+            "last_name": message.from_user.last_name, # Фамилия пользователя
+            "username": message.from_user.username, # Username пользователя
+            "lang": 'ru', # Язык пользователя (Сделать проверку на наличие в базе данных)
+            "date": message.date,  # Дата и время регистрации
         }
         # Записываем данные пользователя в базу данных src/core/database/database.db
         register_user(user_data)
 
         await message.answer(
             "👋 <b>Добро пожаловать! Выберите язык общения</b> / <b>Хуш омадед! Забони муомиларо интихоб кунед:</b>",
-            reply_markup=choose_lang(),
+            reply_markup=choose_lang(), # Отправляем клавиатуру с выбором языка
         )
     except Exception as e:
         logger.error(f"Ошибка /start: {e} - {message.chat.id}")
