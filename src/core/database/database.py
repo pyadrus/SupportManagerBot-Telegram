@@ -46,20 +46,6 @@ class Appeal(BaseModel):
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
 
 
-
-
-
-def get_user_lang(user_id: int) -> Optional[str]:
-    """Получает язык пользователя"""
-    try:
-        with db:
-            user = User.select().where(User.user_id == user_id).get_or_none()
-            return user.lang if user else None
-    except Exception as e:
-        logger.error(f"Ошибка получения языка пользователя {user_id}: {e}")
-        return None
-
-
 def get_status_name(status_id: int) -> str:
     """Получает название статуса по его ID"""
     try:
@@ -244,10 +230,22 @@ def register_user(user_data) -> None:
         }
     )
 
+
 """Установка языка пользователя"""
+
 
 def set_user_lang(id_user: int, lang: str):
     """Обновляет язык пользователя по Telegram ID"""
     with db:
         query = Person.update({Person.lang: lang}).where(Person.id_user == id_user)
         query.execute()
+
+
+"""Получение языка пользователя"""
+
+
+def get_user_lang(id_user: int) -> str | None:
+    """Возвращает язык пользователя по Telegram ID. Если пользователь не найден — None."""
+    with db:
+        user = Person.get_or_none(Person.id_user == id_user)
+        return user.lang if user else None

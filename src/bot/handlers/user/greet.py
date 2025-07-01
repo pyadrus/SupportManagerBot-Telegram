@@ -21,11 +21,11 @@ async def cmd_start(message: Message):
 
         # Формируем данные пользователя
         user_data = {
-            "id": message.from_user.id, # ID пользователя
-            "first_name": message.from_user.first_name, # Имя пользователя
-            "last_name": message.from_user.last_name, # Фамилия пользователя
-            "username": message.from_user.username, # Username пользователя
-            "lang": 'ru', # Язык пользователя (Сделать проверку на наличие в базе данных)
+            "id": message.from_user.id,  # ID пользователя
+            "first_name": message.from_user.first_name,  # Имя пользователя
+            "last_name": message.from_user.last_name,  # Фамилия пользователя
+            "username": message.from_user.username,  # Username пользователя
+            "lang": 'ru',  # Язык пользователя (Сделать проверку на наличие в базе данных)
             "date": message.date,  # Дата и время регистрации
         }
         # Записываем данные пользователя в базу данных src/core/database/database.db
@@ -33,20 +33,20 @@ async def cmd_start(message: Message):
 
         await message.answer(
             "👋 <b>Добро пожаловать! Выберите язык общения</b> / <b>Хуш омадед! Забони муомиларо интихоб кунед:</b>",
-            reply_markup=choose_lang(), # Отправляем клавиатуру с выбором языка
+            reply_markup=choose_lang(),  # Отправляем клавиатуру с выбором языка
         )
     except Exception as e:
         logger.error(f"Ошибка /start: {e} - {message.chat.id}")
 
 
 @router.callback_query(F.data.startswith("lang-"))
-async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
+async def choose_lang_handler(callback_query: CallbackQuery, state: FSMContext):
     """Обрабатывает выбор языка из меню выбора языка."""
     try:
-        lang = call.data.split("-")[1]
-        logger.info(f"Выбран язык {lang} - {call.from_user.id}")
-        set_user_lang(call.from_user.id, lang)
-        await call.message.edit_text(
+        lang = callback_query.data.split("-")[1]
+        logger.info(f"Выбран язык {lang} - {callback_query.from_user.id}")
+        set_user_lang(callback_query.from_user.id, lang)
+        await callback_query.message.edit_text(
             (
                 "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨"
                 if lang == "tj"
@@ -55,7 +55,7 @@ async def choose_lang_handler(call: CallbackQuery, state: FSMContext):
             reply_markup=start(lang),
         )
     except Exception as e:
-        logger.error(f"Ошибка выбора языка: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка выбора языка: {e} - {callback_query.from_user.id}")
     finally:
         await state.clear()
 

@@ -11,31 +11,32 @@ from src.bot.keyboards.keyboards import consent_or_edit_my_appeal, manage_appeal
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import router, bot
 from src.core.config.config import GROUP_ID
-from src.core.database.database import db
+from src.core.database.database import db, get_user_lang
 
 
 @router.callback_query(F.data == 'call_manager')
-async def start_create_appeal(call: CallbackQuery, state: FSMContext):
+async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
     """Отвечает на кнопку вызова специалиста (оператора)"""
     try:
-        lang = await db.get_user_lang(call.from_user.id)  # Получаем язык пользователя
-        await call.answer()
-        if await db.check_user_active_appeal(call.from_user.id):
-            await call.message.answer(
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
+        logger.info(f"Язык пользователя {callback_query.from_user.id}: {lang}")
+        await callback_query.answer()
+        if await db.check_user_active_appeal(callback_query.from_user.id):
+            await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед" if lang == 'tj' else "💬 Вы уже находитесь в активном диалоге")
         else:
-            await call.message.answer(
+            await callback_query.message.answer(
                 "📝 Пеш аз пайваст шудан бо мутахассис, лутфан номи пурраи худро ворид кунед" if lang == 'tj' else "📝 Прежде чем связаться со специалистом, введите ваше ФИО")
             await state.set_state(StartAppealStates.fio)
     except Exception as e:
-        logger.error(f"Ошибка начала создания обращения: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка начала создания обращения: {e} - {callback_query.from_user.id}")
 
 
 @router.message(StateFilter(StartAppealStates.fio))
 async def fio_appeal(message: Message, state: FSMContext):
     try:
         await state.update_data(fio=message.text)
-        lang = await db.get_user_lang(message.chat.id) # Получаем язык пользователя
+        lang = await db.get_user_lang(message.chat.id)  # Получаем язык пользователя
         await message.answer(
             "📞 Бузург! Акнун рақами телефони тамосатонро ворид кунед" if lang == 'tj' else "📞 Отлично! Теперь введите ваш контактный номер телефона")
         await state.set_state(StartAppealStates.phone)
@@ -79,18 +80,18 @@ async def question_appeal(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data == 'consent_my_appeal')
-async def consent_appeal(call: CallbackQuery, state: FSMContext):
+async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
-        logger.info(f"Создано обращение {call.from_user.id}")
-        lang = await db.get_user_lang(call.message.chat.id)
-        await call.message.edit_text(
+        logger.info(f"Создано обращение {callback_query.from_user.id}")
+        lang = await db.get_user_lang(callback_query.message.chat.id)
+        await callback_query.message.edit_text(
             "✅ <b>Дархости шумо қабул шуд!</b> Мунтазир бошед, мутахассиси мо ба зудӣ бо шумо тамос мегирад. Мо кор мекунем, дар ҳоле ки шаҳр хоб аст... 🌙" if lang == 'tj' else "✅ <b>Ваша заявка принята!</b> Ожидайте, наш специалист скоро свяжется с вами. Мы работаем, пока город спит... 🌙")
-        appeal_id = await db.add_appeal(call.from_user.id)
+        appeal_id = await db.add_appeal(callback_query.from_user.id)
         await db.update_appeal_data(appeal_id, last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
 
         data = await state.get_data()
         text = f"""
-🆕 Обращение {f'@{call.from_user.username}' if call.from_user.username else f'<code>{call.from_user.id}</code>'}
+🆕 Обращение {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}
 🆔 <code>#{appeal_id}</code>
 🕛 Дата создания: <code>{datetime.now().strftime("%d.%m.%Y %H:%M:%S")}</code>
 
@@ -100,44 +101,44 @@ async def consent_appeal(call: CallbackQuery, state: FSMContext):
         """
         await bot.send_message(GROUP_ID, text, reply_markup=manage_appeal())
     except Exception as e:
-        logger.error(f"Ошибка регистрации обращения: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка регистрации обращения: {e} - {callback_query.from_user.id}")
     finally:
         await state.clear()
 
 
 @router.callback_query(F.data == 'edit_my_appeal')
-async def start_edit_appeal(call: CallbackQuery, state: FSMContext):
+async def start_edit_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
-        logger.info(f"Изменение обращения {call.from_user.id}")
-        lang = await db.get_user_lang(call.message.chat.id)
-        await call.message.delete_reply_markup()
-        await call.message.answer(
+        logger.info(f"Изменение обращения {callback_query.from_user.id}")
+        lang = await db.get_user_lang(callback_query.message.chat.id)
+        await callback_query.message.delete_reply_markup()
+        await callback_query.message.answer(
             "✍️️ Дар муомилоти шумо чӣ тағир дода мешавад?" if lang == "tj" else "✍️ Что изменить в вашем обращении?",
             reply_markup=edit_my_appeal(lang))
         await state.set_state(StartAppealStates.edit_type)
     except Exception as e:
-        logger.error(f"Ошибка начала изменения обращения: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка начала изменения обращения: {e} - {callback_query.from_user.id}")
 
 
 @router.callback_query(StateFilter(StartAppealStates.edit_type), F.data.startswith('edit_appeal-'))
-async def edit_type_appeal(call: CallbackQuery, state: FSMContext):
+async def edit_type_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
-        edit_type = call.data.split("-")[1]
-        logger.info(f"Изменение {edit_type} обращения {call.from_user.id}")
+        edit_type = callback_query.data.split("-")[1]
+        logger.info(f"Изменение {edit_type} обращения {callback_query.from_user.id}")
         await state.update_data(edit_type=edit_type)
-        lang = await db.get_user_lang(call.message.chat.id)
+        lang = await db.get_user_lang(callback_query.message.chat.id)
         if edit_type == 'fio':
-            await call.message.edit_text(
+            await callback_query.message.edit_text(
                 "📛 Лутфан номи пурраи навро ворид кунед" if lang == "tj" else "📛 Пожалуйста, введите новое ФИО")
         elif edit_type == 'phone':
-            await call.message.edit_text(
+            await callback_query.message.edit_text(
                 "📞 Лутфан рақами нави телефонро ворид кунед" if lang == "tj" else "📞 Пожалуйста, введите новый номер телефона")
         else:
-            await call.message.edit_text(
+            await callback_query.message.edit_text(
                 "❓ Лутфан саволи навро нависед" if lang == "tj" else "❓ Пожалуйста, введите новый вопрос")
         await state.set_state(StartAppealStates.edit)
     except Exception as e:
-        logger.error(f"Ошибка начала изменения обращения: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка начала изменения обращения: {e} - {callback_query.from_user.id}")
 
 
 @router.message(StateFilter(StartAppealStates.edit))
@@ -166,15 +167,15 @@ async def edit_appeal(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("set_rating-"))
-async def set_rating(call: CallbackQuery):
+async def set_rating(callback_query: CallbackQuery):
     try:
-        lang = await db.get_user_lang(call.from_user.id)
-        await call.message.edit_text("Ташаккур :)" if lang == 'tj' else "Благодарим :)")
-        data = call.data.split('-')
+        lang = await db.get_user_lang(callback_query.from_user.id)
+        await callback_query.message.edit_text("Ташаккур :)" if lang == 'tj' else "Благодарим :)")
+        data = callback_query.data.split('-')
         await db.update_appeal_data(data[1], rating=data[2])
         logger.info(f"Установлен рейтинг для обращения {data[1]} - {data[2]}")
     except Exception as e:
-        logger.error(f"Ошибка установки рейтинга: {e} - {call.from_user.id}")
+        logger.error(f"Ошибка установки рейтинга: {e} - {callback_query.from_user.id}")
 
 
 def register_user_handler():
