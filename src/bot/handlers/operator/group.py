@@ -10,13 +10,13 @@ from loguru import logger
 
 from src.bot.keyboards.keyboards import close_appeal
 from src.bot.system.dispatcher import router, bot
-from src.core.database.database import db
+from src.core.database.database import db, get_appeal
 
 
 @router.callback_query(F.data == 'accept_appeal')
 async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
-        manager = await db.get_user(callback_query.from_user.id)
+        manager = get_appeal(callback_query.from_user.id)
         if await db.check_manager_active_appeal(callback_query.from_user.id):
             await callback_query.answer("У Вас есть активное обращение", show_alert=True)
         elif not manager:

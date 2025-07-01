@@ -11,7 +11,7 @@ from src.bot.keyboards.keyboards import consent_or_edit_my_appeal, manage_appeal
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import router, bot
 from src.core.config.config import GROUP_ID
-from src.core.database.database import db, get_user_lang
+from src.core.database.database import db, get_user_lang, check_user_active_appeal, create_appeal, update_appeal
 
 
 @router.callback_query(F.data == 'call_manager')
@@ -21,7 +21,7 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
         lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
         logger.info(f"Язык пользователя {callback_query.from_user.id}: {lang}")
         await callback_query.answer()
-        if await db.check_user_active_appeal(callback_query.from_user.id):
+        if check_user_active_appeal(callback_query.from_user.id):  # Проверяем, активно ли обращение с оператором
             await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед" if lang == 'tj' else "💬 Вы уже находитесь в активном диалоге")
         else:
@@ -34,9 +34,11 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
 
 @router.message(StateFilter(StartAppealStates.fio))
 async def fio_appeal(message: Message, state: FSMContext):
+    """Обрабатывает ФИО пользователя"""
     try:
         await state.update_data(fio=message.text)
-        lang = await db.get_user_lang(message.chat.id)  # Получаем язык пользователя
+        lang = get_user_lang(id_user=message.chat.id)  # Получаем язык пользователя
+        logger.info(f"Язык пользователя {message.chat.id}: {lang}")
         await message.answer(
             "📞 Бузург! Акнун рақами телефони тамосатонро ворид кунед" if lang == 'tj' else "📞 Отлично! Теперь введите ваш контактный номер телефона")
         await state.set_state(StartAppealStates.phone)
@@ -46,9 +48,11 @@ async def fio_appeal(message: Message, state: FSMContext):
 
 @router.message(StateFilter(StartAppealStates.phone))
 async def phone_appeal(message: Message, state: FSMContext):
+    """Обрабатывает номер телефона пользователя"""
     try:
         await state.update_data(phone=message.text)
-        lang = await db.get_user_lang(message.chat.id)
+        lang = get_user_lang(id_user=message.chat.id)  # Получаем язык пользователя
+        logger.info(f"Язык пользователя {message.chat.id}: {lang}")
         await message.answer(
             "❓ Савол е мушкилоти худро ба қадри имкон муфассал тавсиф кунед" if lang == 'tj' else "❓ Опишите ваш вопрос или проблему как можно подробнее")
         await state.set_state(StartAppealStates.question)
@@ -58,10 +62,12 @@ async def phone_appeal(message: Message, state: FSMContext):
 
 @router.message(StateFilter(StartAppealStates.question))
 async def question_appeal(message: Message, state: FSMContext):
+    """Обрабатывает вопрос пользователя"""
     try:
         await state.update_data(question=message.text)
         data = await state.get_data()
-        lang = await db.get_user_lang(message.chat.id)
+        lang = get_user_lang(id_user=message.chat.id)  # Получаем язык пользователя
+        logger.info(f"Язык пользователя {message.chat.id}: {lang}")
         if lang == 'tj':
             text = f"""📋 Лутфан маълумоти муроҷиати худро санҷед:\n
 <b>👤 ФИО</b>: {data['fio']}
@@ -83,11 +89,12 @@ async def question_appeal(message: Message, state: FSMContext):
 async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
         logger.info(f"Создано обращение {callback_query.from_user.id}")
-        lang = await db.get_user_lang(callback_query.message.chat.id)
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
+        logger.info(f"Язык пользователя {callback_query.from_user.id}: {lang}")
         await callback_query.message.edit_text(
             "✅ <b>Дархости шумо қабул шуд!</b> Мунтазир бошед, мутахассиси мо ба зудӣ бо шумо тамос мегирад. Мо кор мекунем, дар ҳоле ки шаҳр хоб аст... 🌙" if lang == 'tj' else "✅ <b>Ваша заявка принята!</b> Ожидайте, наш специалист скоро свяжется с вами. Мы работаем, пока город спит... 🌙")
-        appeal_id = await db.add_appeal(callback_query.from_user.id)
-        await db.update_appeal_data(appeal_id, last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
+        appeal_id = create_appeal(callback_query.from_user.id)
+        update_appeal(appeal_id, last_message_at=datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
 
         data = await state.get_data()
         text = f"""
