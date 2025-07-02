@@ -11,4 +11,5 @@ class StartAppealStates(StatesGroup):
 
 
 class GrantingStates(StatesGroup):
-    user_id = State()  # id пользователя
+    user_id_operator = State()  # id пользователя (оператора)
+    user_id_admin = State()  # id пользователя (администратора)

@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
 from src.bot.keyboards.admin_keyboards import admin_keyboard
-from src.bot.keyboards.keyboards import set_rating, stat_period
+from src.bot.keyboards.user_keyboards import set_rating, stat_period
 from src.bot.middlewares.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import get_appeal, update_appeal, get_user_lang, get_status_name

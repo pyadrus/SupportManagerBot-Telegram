@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from src.bot.keyboards.keyboards import choose_lang, start
+from src.bot.keyboards.user_keyboards import choose_lang, start
 from src.bot.system.dispatcher import router, bot
 from src.core.database.database import register_user, set_user_lang
 

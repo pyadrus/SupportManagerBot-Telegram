@@ -82,8 +82,8 @@ def get_appeal(**kwargs) -> Union[dict, list[dict]]:
             for appeal in query:
                 appeal_dict = {
                     "id": appeal.id,
-                    "user_id": appeal.user.user_id if appeal.user else None,
-                    "manager_id": appeal.manager.user_id if appeal.manager else None,
+                    "user_id": appeal.user.user_id_operator if appeal.user else None,
+                    "manager_id": appeal.manager.user_id_operator if appeal.manager else None,
                     "status_id": appeal.status.id if appeal.status else None,
                     "rating": appeal.rating,
                     "last_message_at": appeal.last_message_at,
@@ -135,57 +135,6 @@ def check_manager_active_appeal(manager_id: int) -> bool:
         return False
 
 
-"""Выдача прав операторам"""
-
-
-class AuthorizationData(Model):
-    user_id = IntegerField(null=True)  # ID Telegram пользователя Telegram
-    username = CharField(null=True)  # Username, 'operator', 'admin'
-    password = CharField(null=True)  # Password для веб-авторизации
-    date_issue = DateTimeField(default=datetime.now)  # Дата выдачи прав
-
-    class Meta:
-        database = db  # Модель базы данных
-        table_name = "authorization_data"  # Имя таблицы
-
-
-def set_user_role(stored_data):
-    """
-    Устанавливает или обновляет роль пользователя.
-    :param stored_data: Словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
-    """
-    db.connect()  # Подключаемся к базе данных
-    db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
-    stored_data = AuthorizationData(
-        user_id=stored_data["user_id"],
-        username=stored_data["username"],
-        password=stored_data["password"],
-        date_issue=datetime.now(),
-    )
-    stored_data.save()  # Сохраняем данные в базу данных
-
-
-"""Чтение данных из базы данных, для проверки данных внесенных админом Telegram бота"""
-
-
-def get_all_authorization_data():
-    """Получение всех данных из базы данных"""
-    db.connect()  # Подключаемся к базе данных
-    db.create_tables([AuthorizationData])  # Создаем таблицу, если она не существует
-    data = []  # Создаем пустой список для хранения данных
-    for entry in AuthorizationData.select():
-        data.append(
-            {
-                "user_id": entry.user_id,
-                "username": entry.username,
-                "password": entry.password,
-                "date_issue": entry.date_issue,
-            }
-        )
-    db.close()  # Закрываем соединение с базой данных
-    return data  # Возвращаем список данных
-
-
 """Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
 
 
@@ -231,6 +180,48 @@ def register_user(user_data) -> None:
             "created_at": user_data.get("date"),  # Время запуска
         }
     )
+
+
+"""Чтение данных из базы данных, для проверки данных внесенных админом Telegram бота"""
+
+
+def get_all_authorization_data():
+    """Получение всех данных из базы данных"""
+    db.connect()  # Подключаемся к базе данных
+    data = []  # Создаем пустой список для хранения данных
+    for entry in Person.select():
+        data.append(
+            {
+                "id": entry.user_id_operator,
+                "username": entry.username,
+                "password": entry.password,
+                "created_at": entry.created_at,
+            }
+        )
+    db.close()  # Закрываем соединение с базой данных
+    return data  # Возвращаем список данных
+
+
+"""Выдача роль операторам, администраторам для авторизации в веб-интерфейсе"""
+
+
+def set_user_role(id_user, status, username, password):
+    """
+    Устанавливает или обновляет роль пользователя.
+    :param id_user: ID пользователя в Telegram, которому устанавливается роль и выдается пароль.
+    :param status: Статус пользователя, который устанавливается (operator, admin).
+    :param username: Username, 'operator', 'admin' для авторизации в веб-интерфейсе.
+    :param password: Пароль для авторизации в веб-интерфейсе.
+    """
+    with db:
+        query = Person.update(
+            {
+                Person.status: status,  # Статус пользователя (operator, admin)
+                Person.username: username,  # Username для авторизации в веб-интерфейсе
+                Person.password: password  # Пароль для авторизации в веб-интерфейсе
+            }
+        ).where(Person.id_user == id_user)
+        query.execute()
 
 
 """Установка языка пользователя"""
