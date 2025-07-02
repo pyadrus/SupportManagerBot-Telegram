@@ -242,3 +242,11 @@ def get_user_lang(id_user: int) -> str | None:
     with db:
         user = Person.get_or_none(Person.id_user == id_user)
         return user.lang if user else None
+
+
+"""Получение статуса пользователя зарегистрированного в Telegram боте"""
+def get_user_status(id_user: int) -> str | None:
+    """Возвращает статус пользователя по Telegram ID. Если пользователь не найден — None."""
+    with db:
+        status = Person.get_or_none(Person.id_user == id_user)
+        return status.status if status else None
