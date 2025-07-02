@@ -10,14 +10,15 @@ from loguru import logger
 
 from src.bot.keyboards.keyboards import close_appeal
 from src.bot.system.dispatcher import router, bot
-from src.core.database.database import db, get_appeal
+from src.core.database.database import get_appeal, get_user_lang, check_manager_active_appeal, update_appeal
 
 
 @router.callback_query(F.data == 'accept_appeal')
 async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
+    """Принимает обращение от пользователя"""
     try:
-        manager = get_appeal(callback_query.from_user.id)
-        if await db.check_manager_active_appeal(callback_query.from_user.id):
+        manager = get_appeal(user_id=callback_query.from_user.id)
+        if check_manager_active_appeal(callback_query.from_user.id):  # Проверка на активное обращение
             await callback_query.answer("У Вас есть активное обращение", show_alert=True)
         elif not manager:
             await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
@@ -25,7 +26,7 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
             text = callback_query.message.html_text
             appeal_id = extract_appeal_id(text)
             if appeal_id:
-                appeal = await db.get_appeal(id=appeal_id)
+                appeal = get_appeal(id=appeal_id)
                 if appeal['user_id'] == callback_query.from_user.id:
                     await callback_query.answer("Вы не можете принять свою заявку", True)
                     return
@@ -33,14 +34,14 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
                     f"{text}\n\n🔥 Заявка принята {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}\n🕛 Дата принятия: <code>{datetime.now().strftime('%d.%m.%Y %H:%M:%S')}</code>")
                 await bot.send_message(callback_query.from_user.id, f"Вы приняли заявку:\n{text}",
                                        reply_markup=close_appeal(appeal_id))
-                client_lang = await db.get_user_lang(appeal['user_id'])
+                client_lang = get_user_lang(appeal['user_id'])
                 await bot.send_message(appeal['user_id'],
                                        "🤝 <b>Мутахассис ба дархости шумо пайваст шуд.</b> Шумо метавонед оғоз кунед ✨" if client_lang == "tj" else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨")
-                await db.update_appeal_data(appeal_id, status_id=2, manager_id=callback_query.from_user.id)
+                await update_appeal(appeal_id, status_id=2, manager_id=callback_query.from_user.id)
             else:
                 await callback_query.message.edit_text("В обращении не найден id")
     except Exception as e:
-        logger.error(f"Ошибка принятия заявки: {e} - {callback_query.message.chat.id}")
+        logger.exception(e)
     finally:
         await state.clear()
 

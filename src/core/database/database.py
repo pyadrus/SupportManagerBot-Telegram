@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from typing import Optional, Union
+from typing import Union
 
 from loguru import logger
 from peewee import *  # https://docs.peewee-orm.com/en/latest/index.html
@@ -10,40 +10,36 @@ from src.core.config.config import DB_NAME
 # Настраиваем синхронную базу данных SQLite
 db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
-
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-
 """Работа с выдачей прав операторам"""
 
 
-class User(BaseModel):
+class User(Model):
     user_id = IntegerField(primary_key=True)
     lang = CharField(null=True)
+
+    class Meta:
+        database = db
 
 
 """Работа с базой данных"""
 
 
-# class User(BaseModel):
-#     user_id = IntegerField(primary_key=True)
-#     lang = CharField(null=True)  # Язык пользователя
-
-
-class Status(BaseModel):
+class Status(Model):
     status = CharField(unique=True)
 
+    class Meta:
+        database = db
 
-class Appeal(BaseModel):
+
+class Appeal(Model):
     user = ForeignKeyField(User, backref="appeals")  # Кто создал обращение
-    manager = ForeignKeyField(
-        User, null=True, backref="managed_appeals"
-    )  # Кто обрабатывает
+    manager = ForeignKeyField(User, null=True, backref="managed_appeals")  # Кто обрабатывает
     status = ForeignKeyField(Status, backref="tickets", default=1)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
+
+    class Meta:
+        database = db
 
 
 def get_status_name(status_id: int) -> str:
@@ -203,6 +199,7 @@ class Person(Model):
     last_name = CharField(null=True)  # Telegram Фамилия пользователя
     username = CharField(null=True)  # Telegram username
     lang = CharField(null=True)  # Язык пользователя
+    status = CharField(null=True)  # Статус пользователя (operator, admin, user)
     created_at = DateTimeField()  # Время запуска
 
     class Meta:  # Подключение к базе данных
@@ -226,6 +223,7 @@ def register_user(user_data) -> None:
             "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
             "username": user_data.get("username"),  # Telegram username
             "lang": user_data.get("lang"),  # Язык пользователя
+            "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
             "created_at": user_data.get("date"),  # Время запуска
         }
     )

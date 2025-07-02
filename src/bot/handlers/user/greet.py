@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from aiogram import F
 from aiogram.filters import CommandStart
-from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
 from src.bot.keyboards.keyboards import choose_lang, start
-from src.bot.system.dispatcher import router
+from src.bot.system.dispatcher import router, bot
 from src.core.database.database import register_user, set_user_lang
 
 
@@ -26,6 +25,7 @@ async def cmd_start(message: Message):
             "last_name": message.from_user.last_name,  # Фамилия пользователя
             "username": message.from_user.username,  # Username пользователя
             "lang": 'ru',  # Язык пользователя (Сделать проверку на наличие в базе данных)
+            "status": 'user',  # Статус пользователя (Admin, operator, user)
             "date": message.date,  # Дата и время регистрации
         }
         # Записываем данные пользователя в базу данных src/core/database/database.db
@@ -40,24 +40,20 @@ async def cmd_start(message: Message):
 
 
 @router.callback_query(F.data.startswith("lang-"))
-async def choose_lang_handler(callback_query: CallbackQuery, state: FSMContext):
+async def choose_lang_handler(callback_query: CallbackQuery):
     """Обрабатывает выбор языка из меню выбора языка."""
-    try:
-        lang = callback_query.data.split("-")[1]
-        logger.info(f"Выбран язык {lang} - {callback_query.from_user.id}")
-        set_user_lang(callback_query.from_user.id, lang)
-        await callback_query.message.edit_text(
-            (
-                "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨"
-                if lang == "tj"
-                else "Чем могу помочь, путник? ✨"
-            ),
-            reply_markup=start(lang),
-        )
-    except Exception as e:
-        logger.error(f"Ошибка выбора языка: {e} - {callback_query.from_user.id}")
-    finally:
-        await state.clear()
+    lang = callback_query.data.split("-")[1]
+    logger.info(f"Выбран язык {lang} - {callback_query.from_user.id}")
+    set_user_lang(callback_query.from_user.id, lang)
+    await bot.send_message(
+        chat_id=callback_query.from_user.id,
+        text=(
+            "Чӣ тавр ман метавонам кӯмак кунам, сайёҳ? ✨"
+            if lang == "tj"
+            else "Чем могу помочь, путник? ✨"
+        ),
+        reply_markup=start(lang),
+    )
 
 
 def register_commands():

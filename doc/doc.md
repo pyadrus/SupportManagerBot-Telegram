@@ -33,6 +33,7 @@ user_data = {
             "last_name": message.from_user.last_name, # Фамилия пользователя
             "username": message.from_user.username, # Username пользователя
             "lang": 'ru', # Язык пользователя (Сделать проверку на наличие в базе данных)
+            "status": 'user', # 
             "date": message.date,  # Дата и время регистрации
         }
 ```

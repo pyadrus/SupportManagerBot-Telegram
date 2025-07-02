@@ -33,7 +33,7 @@ def start(lang: str) -> InlineKeyboardMarkup:
                 ),
             ],
         ]
-    else:
+    elif lang == "ru":
         btns = [
             [
                 InlineKeyboardButton(
