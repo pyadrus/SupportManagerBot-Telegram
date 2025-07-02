@@ -197,9 +197,11 @@ class Person(Model):
     id_user = IntegerField(unique=True)  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
     first_name = CharField(null=True)  # Telegram Имя пользователя
     last_name = CharField(null=True)  # Telegram Фамилия пользователя
-    username = CharField(null=True)  # Telegram username
+    username_tg = CharField(null=True)  # Telegram username
     lang = CharField(null=True)  # Язык пользователя
     status = CharField(null=True)  # Статус пользователя (operator, admin, user)
+    username = CharField(null=True)  # Username, 'operator', 'admin'
+    password = CharField(null=True)  # Password для веб-авторизации
     created_at = DateTimeField()  # Время запуска
 
     class Meta:  # Подключение к базе данных
@@ -221,9 +223,11 @@ def register_user(user_data) -> None:
         defaults={
             "first_name": user_data.get("first_name"),  # Telegram Имя пользователя
             "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
-            "username": user_data.get("username"),  # Telegram username
+            "username_tg": user_data.get("username_tg"),  # Telegram username
             "lang": user_data.get("lang"),  # Язык пользователя
             "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
+            "username": user_data.get("username"),  # Username, 'operator', 'admin'
+            "password": user_data.get("password"),  # Password для веб-авторизации
             "created_at": user_data.get("date"),  # Время запуска
         }
     )

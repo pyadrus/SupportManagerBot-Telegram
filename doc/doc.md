@@ -24,16 +24,19 @@
 
 Работа пользователя.
 Пользователь вызывает команду /start. Далее бот записывает данные в базу данных `src/core/database/database.db` в
-таблицу `register_user`.
+таблицу `register_user`. По умолчанию пользователю выдается статус `user`, далее администратор может поменять статус
+пользователя на `admin` или `operator`.
 
 ```bazaar
 user_data = {
             "id": message.from_user.id, # ID пользователя
             "first_name": message.from_user.first_name, # Имя пользователя
             "last_name": message.from_user.last_name, # Фамилия пользователя
-            "username": message.from_user.username, # Username пользователя
+            "username_tg": message.from_user.username, # Username пользователя
             "lang": 'ru', # Язык пользователя (Сделать проверку на наличие в базе данных)
-            "status": 'user', # 
+            "status": 'user', # Статус пользователя Telegram бота
+            "username"
+            "password"
             "date": message.date,  # Дата и время регистрации
         }
 ```

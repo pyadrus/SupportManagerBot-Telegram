@@ -23,9 +23,11 @@ async def cmd_start(message: Message):
             "id": message.from_user.id,  # ID пользователя
             "first_name": message.from_user.first_name,  # Имя пользователя
             "last_name": message.from_user.last_name,  # Фамилия пользователя
-            "username": message.from_user.username,  # Username пользователя
+            "username_tg": message.from_user.username,  # Username пользователя
             "lang": 'ru',  # Язык пользователя (Сделать проверку на наличие в базе данных)
             "status": 'user',  # Статус пользователя (Admin, operator, user)
+            "username": 'user',  # 'user', 'operator', 'admin'
+            "password": None,  # Пароль пользователя
             "date": message.date,  # Дата и время регистрации
         }
         # Записываем данные пользователя в базу данных src/core/database/database.db
