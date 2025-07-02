@@ -47,6 +47,15 @@ async def process_user_id_operator(message: Message, state: FSMContext):
     )
     await state.clear()
 
+    await bot.send_message(
+        chat_id=user_id,
+        text=(
+            "👋 Здравствуйте. Вам выданы права оператора\n"
+            f"🔑 Логин доступа: <code>{username}</code>\n"
+            f"🔑 Пароль доступа: <code>{password}</code>\n"
+        )
+    )
+
 
 """Выдача прав админу"""
 
@@ -77,6 +86,16 @@ async def process_user_id_admin(message: Message, state: FSMContext):
         f"🔑 Логин доступа: <code>{username}</code>\n"
         f"🔑 Пароль доступа: <code>{password}</code>\n"
     )
+
+    await bot.send_message(
+        chat_id=user_id,
+        text=(
+            "👋 Здравствуйте. Вам выданы права администратора\n"
+            f"🔑 Логин доступа: <code>{username}</code>\n"
+            f"🔑 Пароль доступа: <code>{password}</code>\n"
+        )
+    )
+
     await state.clear()
 
 
