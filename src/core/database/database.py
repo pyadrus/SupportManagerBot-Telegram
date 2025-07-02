@@ -192,7 +192,7 @@ def get_all_authorization_data():
     for entry in Person.select():
         data.append(
             {
-                "id": entry.user_id_operator,
+                "id": entry.id,
                 "username": entry.username,
                 "password": entry.password,
                 "created_at": entry.created_at,
