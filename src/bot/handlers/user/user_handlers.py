@@ -11,7 +11,8 @@ from src.bot.keyboards.user_keyboards import consent_or_edit_my_appeal, manage_a
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import router, bot
 from src.core.config.config import GROUP_ID
-from src.core.database.database import db, get_user_lang, check_user_active_appeal, create_appeal, update_appeal
+from src.core.database.database import db, get_user_lang, check_user_active_appeal, create_appeal, update_appeal, \
+    get_operator_ids_by_status
 
 
 @router.callback_query(F.data == 'call_manager')
@@ -87,6 +88,7 @@ async def question_appeal(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == 'consent_my_appeal')
 async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
+    """Обрабатывает согласие пользователя на создание обращения и отправляет его в группу"""
     try:
         logger.info(f"Создано обращение {callback_query.from_user.id}")
         lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
@@ -106,7 +108,13 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
 <b>Телефон:</b> <code>{data['phone']}</code>
 <b>Вопрос:</b> <code>{data['question']}</code>
         """
-        await bot.send_message(GROUP_ID, text, reply_markup=manage_appeal())
+
+        # Получаем ID менеджеров для отправки заявки пользователя
+        ids  = get_operator_ids_by_status(status='operator')
+        logger.debug(f"Операторы для отправки заявки: {ids}")
+        # Рассылаем сообщения операторам в личку бота
+        for id_operator in ids:
+            await bot.send_message(id_operator, text, reply_markup=manage_appeal())
     except Exception as e:
         logger.error(f"Ошибка регистрации обращения: {e} - {callback_query.from_user.id}")
     finally:

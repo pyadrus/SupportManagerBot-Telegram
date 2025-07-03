@@ -250,3 +250,10 @@ def get_user_status(id_user: int) -> str | None:
     with db:
         status = Person.get_or_none(Person.id_user == id_user)
         return status.status if status else None
+
+"""Получаем ID оператора по статусу. Возвращаем список ID операторов [123456789, 987654321, ...]."""
+def get_operator_ids_by_status(status: str):
+    """Получаем список ID операторов по статусу"""
+    with db:
+        operators = Person.select().where(Person.status == status)
+        return [operator.id_user for operator in operators]
