@@ -15,31 +15,43 @@ from src.core.database.database import (check_manager_active_appeal,
                                         update_appeal)
 
 
-@router.callback_query(F.data == 'accept_appeal')
+@router.callback_query(F.data == "accept_appeal")
 async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
     """Принимает обращение от пользователя"""
     try:
-        manager = get_appeal(user_id=callback_query.from_user.id)
-        if check_manager_active_appeal(callback_query.from_user.id):  # Проверка на активное обращение
+        user_id = callback_query.from_user.id  # Получаем ID пользователя
+        user_username = callback_query.from_user.username # Получаем username пользователя
+        operator = get_appeal(user_id=user_id)
+        if check_manager_active_appeal(user_id):  # Проверка на активное обращение
             await callback_query.answer("У Вас есть активное обращение", show_alert=True)
-        elif not manager:
+        elif not operator:
             await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
         else:
             text = callback_query.message.html_text
             appeal_id = extract_appeal_id(text)
             if appeal_id:
                 appeal = get_appeal(id=appeal_id)
-                if appeal['user_id'] == callback_query.from_user.id:
+                if appeal["user_id"] == user_id:
                     await callback_query.answer("Вы не можете принять свою заявку", True)
                     return
                 await callback_query.message.edit_text(
-                    f"{text}\n\n🔥 Заявка принята {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}\n🕛 Дата принятия: <code>{datetime.now().strftime('%d.%m.%Y %H:%M:%S')}</code>")
-                await bot.send_message(callback_query.from_user.id, f"Вы приняли заявку:\n{text}",
-                                       reply_markup=close_appeal(appeal_id))
-                client_lang = get_user_lang(appeal['user_id'])
-                await bot.send_message(appeal['user_id'],
-                                       "🤝 <b>Мутахассис ба дархости шумо пайваст шуд.</b> Шумо метавонед оғоз кунед ✨" if client_lang == "tj" else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨")
-                await update_appeal(appeal_id, status_id=2, manager_id=callback_query.from_user.id)
+                    f"{text}\n\n🔥 Заявка принята {f'@{user_username}' if user_username else f'<code>{user_id}</code>'}\n🕛 Дата принятия: <code>{datetime.now().strftime('%d.%m.%Y %H:%M:%S')}</code>"
+                )
+                await bot.send_message(
+                    user_id,
+                    f"Вы приняли заявку:\n{text}",
+                    reply_markup=close_appeal(appeal_id),
+                )
+                client_lang = get_user_lang(appeal["user_id"])
+                await bot.send_message(
+                    appeal["user_id"],
+                    (
+                        "🤝 <b>Мутахассис ба дархости шумо пайваст шуд.</b> Шумо метавонед оғоз кунед ✨"
+                        if client_lang == "tj"
+                        else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨"
+                    ),
+                )
+                await update_appeal(appeal_id, status_id=2, manager_id=user_id)
             else:
                 await callback_query.message.edit_text("В обращении не найден id")
     except Exception as e:
@@ -51,7 +63,7 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
 def extract_appeal_id(text: str) -> Optional[int]:
     """Извлекает ID обращения из текста"""
     try:
-        match = re.search(r'🆔\s*<code>#(\d+)</code>', text)
+        match = re.search(r"🆔\s*<code>#(\d+)</code>", text)
         if match:
             return int(match.group(1))
     except Exception as e:
@@ -59,4 +71,4 @@ def extract_appeal_id(text: str) -> Optional[int]:
 
 
 def register_manager_handlers_group():
-    router.callback_query.register(accept_appeal, F.data == 'accept_appeal')
+    router.callback_query.register(accept_appeal, F.data == "accept_appeal")

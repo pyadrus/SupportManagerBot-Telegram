@@ -68,6 +68,7 @@ def create_appeal(user_id: int, status_id: int = 1) -> int:
         return 0
 
 
+
 def get_appeal(**kwargs) -> Union[dict, list[dict]]:
     """Получает обращение по фильтрам"""
     try:
