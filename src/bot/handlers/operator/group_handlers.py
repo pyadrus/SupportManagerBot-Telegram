@@ -11,7 +11,7 @@ from loguru import logger
 from src.bot.keyboards.user_keyboards import close_appeal
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (check_manager_active_appeal,
-                                        get_appeal, get_user_lang,
+                                        get_appeal, get_user_lang, get_user_status,
                                         update_appeal)
 
 
@@ -21,13 +21,15 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
         user_id = callback_query.from_user.id  # Получаем ID пользователя
         user_username = callback_query.from_user.username # Получаем username пользователя
-        operator = get_appeal(user_id=user_id)
+        text = callback_query.message.html_text # Получаем текст сообщения
+        # operator = get_appeal(user_id=user_id)
+        # status = get_user_status(id_user=user_id)
+        # if status == "operator":
         if check_manager_active_appeal(user_id):  # Проверка на активное обращение
             await callback_query.answer("У Вас есть активное обращение", show_alert=True)
-        elif not operator:
-            await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
+        # elif not operator:
+            # await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
         else:
-            text = callback_query.message.html_text
             appeal_id = extract_appeal_id(text)
             if appeal_id:
                 appeal = get_appeal(id=appeal_id)
