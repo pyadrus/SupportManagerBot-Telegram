@@ -10,9 +10,7 @@ from loguru import logger
 
 from src.bot.keyboards.user_keyboards import close_appeal
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import (check_manager_active_appeal,
-                                        get_appeal, get_user_lang, get_user_status,
-                                        update_appeal)
+from src.core.database.database import check_manager_active_appeal, get_appeal, get_user_lang, update_appeal
 
 
 @router.callback_query(F.data == "accept_appeal")
@@ -29,10 +27,22 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
             await callback_query.answer("У Вас есть активное обращение", show_alert=True)
         # elif not operator:
             # await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
+        
+            """
+            Обращаемся к таблице Appeal проверяем есть ли в колонке manager_id значение None, то
+            берем id оператора и вписываем его в колонку manager_id, в колонку status_id вписываем 2
+            Статусы:
+            В ожидании
+            В обработке
+            Закрыто
+            """
+        
         else:
             appeal_id = extract_appeal_id(text)
+            logger.info(f" Запрос принятия обращения от {appeal_id}")
             if appeal_id:
                 appeal = get_appeal(id=appeal_id)
+                logger.info(f"Принято обращение #{appeal_id} от {user_id}. {appeal}")
                 if appeal["user_id"] == user_id:
                     await callback_query.answer("Вы не можете принять свою заявку", True)
                     return

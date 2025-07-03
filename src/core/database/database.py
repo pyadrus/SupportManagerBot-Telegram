@@ -13,12 +13,12 @@ db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 """Работа с выдачей прав операторам"""
 
 
-class User(Model):
-    user_id = IntegerField(primary_key=True)
-    lang = CharField(null=True)
+# class User(Model):
+    # user_id = IntegerField(primary_key=True)
+    # lang = CharField(null=True)
 
-    class Meta:
-        database = db
+    # class Meta:
+        # database = db
 
 
 """Работа с базой данных"""
@@ -32,14 +32,16 @@ class Status(Model):
 
 
 class Appeal(Model):
-    user = ForeignKeyField(User, backref="appeals")  # Кто создал обращение
-    manager = ForeignKeyField(User, null=True, backref="managed_appeals")  # Кто обрабатывает
-    status = ForeignKeyField(Status, backref="tickets", default=1)  # Статус
+    user = CharField(null=True)  # Кто создал обращение
+    manager = CharField(null=True)  # Кто обрабатывает
+    status = CharField(null=True)  # Статус
     rating = IntegerField(null=True)  # Оценка
-    last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщенияs
+    last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
 
     class Meta:
         database = db
+        table_name = "appeals"
+        
 
 
 def get_status_name(status_id: int) -> str:
@@ -222,6 +224,18 @@ def set_user_role(id_user, status, username, password):
                 Person.password: password  # Пароль для авторизации в веб-интерфейсе
             }
         ).where(Person.id_user == id_user)
+        query.execute()
+
+
+"""Записываем ID оператора в базу данных, для отметки менеджера, который обрабатывает обращение от пользователя"""
+def set_operator_id(id_user: int, status_id: int):
+    """Меняем статус обработки обращения и записываем ID оператора, который обрабатывает обращение от пользователя"""
+    with db:
+        query = Appeal.update(
+            {
+                Appeal.status_id: status_id,
+            }
+        ).where(Appeal.id_user == id_user)
         query.execute()
 
 
