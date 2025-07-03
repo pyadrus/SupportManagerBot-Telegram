@@ -7,8 +7,9 @@ from loguru import logger
 from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.operator_keyboards import operator_keyboard
 from src.bot.keyboards.user_keyboards import choose_lang, start
-from src.bot.system.dispatcher import router, bot
-from src.core.database.database import register_user, set_user_lang, get_user_status
+from src.bot.system.dispatcher import bot, router
+from src.core.database.database import (get_user_status, register_user,
+                                        set_user_lang)
 
 
 @router.message(CommandStart())

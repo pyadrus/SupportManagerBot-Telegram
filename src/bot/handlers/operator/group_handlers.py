@@ -9,8 +9,10 @@ from aiogram.types import CallbackQuery
 from loguru import logger
 
 from src.bot.keyboards.user_keyboards import close_appeal
-from src.bot.system.dispatcher import router, bot
-from src.core.database.database import get_appeal, get_user_lang, check_manager_active_appeal, update_appeal
+from src.bot.system.dispatcher import bot, router
+from src.core.database.database import (check_manager_active_appeal,
+                                        get_appeal, get_user_lang,
+                                        update_appeal)
 
 
 @router.callback_query(F.data == 'accept_appeal')

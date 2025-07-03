@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           WebAppInfo)
 
 
 def admin_keyboard() -> InlineKeyboardMarkup:
