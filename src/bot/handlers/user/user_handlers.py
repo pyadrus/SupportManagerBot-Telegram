@@ -16,7 +16,6 @@ from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
     check_user_active_appeal,
-    create_appeal,
     db,
     get_operator_ids_by_status,
     get_user_lang,

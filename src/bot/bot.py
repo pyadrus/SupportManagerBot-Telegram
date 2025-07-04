@@ -12,7 +12,7 @@ from src.bot.handlers.operator.group_handlers import \
     register_manager_handlers_group
 from src.bot.handlers.user.user_handlers import register_user_handler
 from src.bot.system.dispatcher import bot, dp
-from src.core.database.database import Appeal, Status, User, db
+from src.core.database.database import Appeal, db
 
 logger.add("log/log.log")
 
@@ -23,11 +23,8 @@ async def on_startup():
 
         with db:  # Создание таблиц в базе данных
             # Настраиваем параметры SQLite для производительности
-            db.create_tables([User, Status, Appeal])
+            db.create_tables([Appeal])
             # Добавляем стандартные статусы
-            statuses = ["В ожидании", "В обработке", "Закрыто"]
-            for status in statuses:
-                Status.get_or_create(status=status)
             logger.info("Таблицы успешно созданы или уже существуют, статусы добавлены")
 
         logger.info(f"Бот @{bot_data.username} - {bot_data.full_name} запущен")

@@ -12,63 +12,61 @@ db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 """Работа с выдачей прав операторам"""
 
-
 # class User(Model):
-    # user_id = IntegerField(primary_key=True)
-    # lang = CharField(null=True)
+# user_id = IntegerField(primary_key=True)
+# lang = CharField(null=True)
 
-    # class Meta:
-        # database = db
+# class Meta:
+# database = db
 
 
 """Работа с базой данных"""
 
 
-class Status(Model):
-    status = CharField(unique=True)
+# class Status(Model):
+# status = CharField(unique=True)
 
-    class Meta:
-        database = db
+# class Meta:
+# database = db
 
 
 class Appeal(Model):
-    user = CharField(null=True)  # Кто создал обращение
-    manager = CharField(null=True)  # Кто обрабатывает
+    user_id = CharField(null=True)  # Кто создал обращение (ID пользователя)
+    manager_id = CharField(null=True)  # Кто обрабатывает (ID оператора)
     status = CharField(null=True)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
+    question = CharField(null=True)  # Вопрос от пользователя
 
     class Meta:
         database = db
         table_name = "appeals"
-        
 
 
-def get_status_name(status_id: int) -> str:
-    """Получает название статуса по его ID"""
-    try:
-        with db:
-            status = Status.select().where(Status.id == status_id).get_or_none()
-            return status.status if status else ""
-    except Exception as e:
-        logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
-        return ""
+# def get_status_name(status_id: int) -> str:
+# """Получает название статуса по его ID"""
+# try:
+# with db:
+# status = Status.select().where(Status.id == status_id).get_or_none()
+# return status.status if status else ""
+# except Exception as e:
+# logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
+# return ""
 
+# TODO - Добавить создание обращения
+# def create_appeal(user_id: int, status_id: int = 1) -> int:
+# """Создаёт обращение для пользователя"""
+# try:
+# with db:
+# status = Status.select().where(Status.id == status_id).get_or_none()
+# if not status:
+# status = Status.select().where(Status.status == "В ожидании").get()
 
-def create_appeal(user_id: int, status_id: int = 1) -> int:
-    """Создаёт обращение для пользователя"""
-    try:
-        with db:
-            status = Status.select().where(Status.id == status_id).get_or_none()
-            if not status:
-                status = Status.select().where(Status.status == "В ожидании").get()
-
-            appeal = Appeal.create(user=user_id, status=status)
-            return appeal.id
-    except Exception as e:
-        logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
-        return 0
-
+# appeal = Appeal.create(user=user_id, status=status)
+# return appeal.id
+# except Exception as e:
+# logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
+# return 0
 
 
 def get_appeal(**kwargs) -> Union[dict, list[dict]]:
@@ -86,7 +84,9 @@ def get_appeal(**kwargs) -> Union[dict, list[dict]]:
                 appeal_dict = {
                     "id": appeal.id,
                     "user_id": appeal.user.user_id_operator if appeal.user else None,
-                    "manager_id": appeal.manager.user_id_operator if appeal.manager else None,
+                    "manager_id": (
+                        appeal.manager.user_id_operator if appeal.manager else None
+                    ),
                     "status_id": appeal.status.id if appeal.status else None,
                     "rating": appeal.rating,
                     "last_message_at": appeal.last_message_at,
@@ -146,7 +146,9 @@ class Person(Model):
     Хранит информацию о пользователях, запустивших Telegram-бота вызвав команду /start.
     """
 
-    id_user = IntegerField(unique=True)  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
+    id_user = IntegerField(
+        unique=True
+    )  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
     first_name = CharField(null=True)  # Telegram Имя пользователя
     last_name = CharField(null=True)  # Telegram Фамилия пользователя
     username_tg = CharField(null=True)  # Telegram username
@@ -177,11 +179,13 @@ def register_user(user_data) -> None:
             "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
             "username_tg": user_data.get("username_tg"),  # Telegram username
             "lang": user_data.get("lang"),  # Язык пользователя
-            "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
+            "status": user_data.get(
+                "status"
+            ),  # Статус пользователя (operator, admin, user)
             "username": user_data.get("username"),  # Username, 'operator', 'admin'
             "password": user_data.get("password"),  # Password для веб-авторизации
             "created_at": user_data.get("date"),  # Время запуска
-        }
+        },
     )
 
 
@@ -221,13 +225,15 @@ def set_user_role(id_user, status, username, password):
             {
                 Person.status: status,  # Статус пользователя (operator, admin)
                 Person.username: username,  # Username для авторизации в веб-интерфейсе
-                Person.password: password  # Пароль для авторизации в веб-интерфейсе
+                Person.password: password,  # Пароль для авторизации в веб-интерфейсе
             }
         ).where(Person.id_user == id_user)
         query.execute()
 
 
 """Записываем ID оператора в базу данных, для отметки менеджера, который обрабатывает обращение от пользователя"""
+
+
 def set_operator_id(id_user: int, status_id: int):
     """Меняем статус обработки обращения и записываем ID оператора, который обрабатывает обращение от пользователя"""
     with db:
@@ -260,13 +266,18 @@ def get_user_lang(id_user: int) -> str | None:
 
 
 """Получение статуса пользователя зарегистрированного в Telegram боте"""
+
+
 def get_user_status(id_user: int) -> str | None:
     """Возвращает статус пользователя по Telegram ID. Если пользователь не найден — None."""
     with db:
         status = Person.get_or_none(Person.id_user == id_user)
         return status.status if status else None
 
+
 """Получаем ID оператора по статусу. Возвращаем список ID операторов [123456789, 987654321, ...]."""
+
+
 def get_operator_ids_by_status(status: str):
     """Получаем список ID операторов по статусу"""
     with db:

@@ -19,14 +19,13 @@ from src.core.database.database import (
     get_appeal,
     update_appeal,
     get_user_lang,
-    get_status_name,
 )
 
 close_timers = {}
 
 
 async def close_appeal_timeout(
-    appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30
+        appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30
 ):
     try:
         while True:
@@ -165,7 +164,7 @@ async def statistics(call: CallbackQuery):
 
         status_texts = []
         for status_id, count in appeals_statuses.items():
-            status_name = get_status_name(status_id) or f"Статус {status_id}"
+            # status_name = get_status_name(status_id) or f"Статус {status_id}"
             status_texts.append(f"{status_name}: {count}")
         avg_rating = (
             round(sum(ratings_all) / len(ratings_all), 2)
