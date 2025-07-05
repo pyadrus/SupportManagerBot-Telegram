@@ -32,10 +32,11 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
         logger.info(f"Язык пользователя {user_id}: {lang}")
         await callback_query.answer()
 
-        status = check_user_active_appeal(user_id=user_id, status="В ожидании")
-        logger.info(status)
+        is_active = check_user_active_appeal(user_id=user_id, status="В ожидании")
+        logger.info(f"Существует активная привлекательность: {is_active}")
 
-        if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
+        if is_active:
+        # if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
             await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед"
                 if lang == "tj"
