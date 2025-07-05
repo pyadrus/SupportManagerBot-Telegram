@@ -15,7 +15,7 @@ from src.bot.middlewares.middlewares import (
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
     update_appeal,
-    get_user_lang,
+    get_user_lang, get_appeal,
 )
 
 close_timers = {}
@@ -192,13 +192,14 @@ async def statistics(call: CallbackQuery):
 @router.message(F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]))
 async def close_appeal_by_manager(message: Message):
     try:
-        appeal = None
-        # appeal = get_appeal(manager_id=message.from_user.id, status_id=2)
+        appeal = get_appeal(operator_id=message.from_user.id, status="В обработке")
+        logger.info(appeal)
+
         if not appeal:
             await message.answer("Заявка не найдена")
             return
         await del_close_timer(appeal["id"])
-        update_appeal(appeal["id"], status_id=3)
+        update_appeal(appeal_id=appeal["id"], status="Закрыто", operator_id=message.from_user.id)
         lang_client = get_user_lang(appeal["user_id"])
         await bot.send_message(
             appeal["user_id"],
@@ -214,8 +215,8 @@ async def close_appeal_by_manager(message: Message):
         )
         logger.info(f"Закрытие обращения - {message.from_user.id}")
     except Exception as e:
-        logger.error(f"Ошибка закрытия заявки: {e} - {message.from_user.id}")
-        await message.answer("Произошла ошибка при закрытии заявки")
+        logger.exception(e)
+        # await message.answer("Произошла ошибка при закрытии заявки")
 
 
 @router.message(ManagerAppealsFilter(), F.text)

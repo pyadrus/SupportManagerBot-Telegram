@@ -148,6 +148,34 @@ def get_user_lang(id_user: int) -> str | None:
         user = Person.get_or_none(Person.id_user == id_user)
         return user.lang if user else None
 
+def get_appeals(appeal_id):
+    """Получает обращение по ID.
+
+    :param appeal_id: ID обращения (int)
+    :return: dict с данными обращения или пустой словарь, если не найдено
+    """
+    try:
+        with db:
+            appeal = Appeal.get_or_none(Appeal.id == appeal_id)
+            if appeal is None:
+                logger.warning(f"Обращение с ID {appeal_id} не найдено")
+                return {}
+
+            # Преобразуем объект модели в словарь
+            return {
+                "id": appeal.id,
+                "user_id": appeal.user_id,
+                "operator_id": appeal.operator_id,
+                "status": appeal.status,
+                "rating": appeal.rating,
+                "last_message_at": appeal.last_message_at,
+                "user_question": appeal.user_question,
+                "full_name": appeal.full_name,
+                "phone": appeal.phone,
+            }
+    except Exception as e:
+        logger.exception(f"Ошибка получения обращения: {e}")
+        return {}
 
 def get_appeal(user_id=None, operator_id=None, status="В обработке"):
     """Получает активное обращение по user_id или operator_id"""

@@ -16,7 +16,7 @@ from src.core.database.database import (
     db,
     # get_appeal,
     get_user_lang,
-    update_appeal, get_appeal,
+    update_appeal, get_appeals,
 )
 
 
@@ -47,7 +47,7 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
             appeal_id = extract_appeal_id(text)
             logger.info(f" Запрос принятия обращения от {appeal_id}")
             if appeal_id:
-                appeal = get_appeal(appeal_id=appeal_id)
+                appeal = get_appeals(appeal_id=appeal_id)
                 logger.info(f"Принято обращение #{appeal_id} от {user_id}. {appeal}")
 
                 if appeal["user_id"] == user_id:
