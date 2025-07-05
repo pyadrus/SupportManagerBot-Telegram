@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional
-from loguru import logger
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi import Form
@@ -8,6 +8,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from loguru import logger
 
 from src.core.database.database import get_all_authorization_data
 

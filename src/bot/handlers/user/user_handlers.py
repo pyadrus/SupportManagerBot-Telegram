@@ -20,7 +20,6 @@ from src.core.database.database import (
     db,
     get_operator_ids_by_status,
     get_user_lang,
-    update_appeal,
 )
 
 
@@ -32,10 +31,10 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
         lang = get_user_lang(id_user=user_id)  # Получаем язык пользователя
         logger.info(f"Язык пользователя {user_id}: {lang}")
         await callback_query.answer()
-        
+
         status = check_user_active_appeal(user_id=user_id, status="В ожидании")
         logger.info(status)
-        
+
         if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
             await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед"
@@ -126,17 +125,17 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
             if lang == "tj"
             else "✅ <b>Ваша заявка принята!</b> Ожидайте, наш специалист скоро свяжется с вами. Мы работаем, пока город спит... 🌙"
         )
-        
+
         create_appeal(
-            user_id=callback_query.from_user.id, 
-            operator_id=None,  
+            user_id=callback_query.from_user.id,
+            operator_id=None,
             status="В ожидании",
-            rating=None, 
-            last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"), 
-            user_question = data['question'],
+            rating=None,
+            last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+            user_question=data['question'],
             full_name=data['fio'],
             phone=data['phone'],
-            )
+        )
         # appeal_id = create_appeal(callback_query.from_user.id)
         # update_appeal(appeal_id, last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
 
