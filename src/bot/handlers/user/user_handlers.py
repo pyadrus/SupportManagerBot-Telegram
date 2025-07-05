@@ -127,7 +127,7 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
             else "✅ <b>Ваша заявка принята!</b> Ожидайте, наш специалист скоро свяжется с вами. Мы работаем, пока город спит... 🌙"
         )
         data = await state.get_data()  # Получаем данные из состояния
-        create_appeal(
+        appeal_id = create_appeal(
             user_id=callback_query.from_user.id,
             operator_id=None,
             status="В ожидании",
@@ -139,8 +139,8 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
         )
         # appeal_id = create_appeal(callback_query.from_user.id)
         # update_appeal(appeal_id, last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
-        appeal_id = "1"
-
+        # appeal_id = "1"
+        logger.debug(f"ID созданной записи: {appeal_id}")
         text = f"""
                 🆕 Обращение {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}
                 🆔 <code>#{appeal_id}</code>

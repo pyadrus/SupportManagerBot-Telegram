@@ -16,7 +16,7 @@ from src.core.database.database import (
     db,
     # get_appeal,
     get_user_lang,
-    update_appeal,
+    update_appeal, get_appeal,
 )
 
 
@@ -25,24 +25,16 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
     """Принимает обращение от пользователя"""
     try:
         user_id = callback_query.from_user.id  # Получаем ID пользователя
-        user_username = (
-            callback_query.from_user.username
-        )  # Получаем username пользователя
+        user_username = callback_query.from_user.username  # Получаем username пользователя
         text = callback_query.message.html_text  # Получаем текст сообщения
 
         db.connect()  # Подсоединяемся к базе данных
         db.create_tables([Appeal])  # Создаем таблицу, если она не существует
 
-        # operator = get_appeal(user_id=user_id)
-        # status = get_user_status(id_user=user_id)
-        # if status == "operator":
         if check_manager_active_appeal(user_id):  # Проверка на активное обращение
             await callback_query.answer(
                 "У Вас есть активное обращение", show_alert=True
             )
-            # elif not operator:
-            # await callback_query.answer("Вы не зарегистрированы в боте", show_alert=True)
-
             """
             Обращаемся к таблице Appeal проверяем есть ли в колонке manager_id значение None, то
             берем id оператора и вписываем его в колонку manager_id, в колонку status_id вписываем 2
@@ -51,14 +43,13 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
             В обработке
             Закрыто
             """
-
         else:
             appeal_id = extract_appeal_id(text)
             logger.info(f" Запрос принятия обращения от {appeal_id}")
             if appeal_id:
-                appeal = None
-                # appeal = get_appeal(id=appeal_id)
+                appeal = get_appeal(appeal_id=appeal_id)
                 logger.info(f"Принято обращение #{appeal_id} от {user_id}. {appeal}")
+
                 if appeal["user_id"] == user_id:
                     await callback_query.answer(
                         "Вы не можете принять свою заявку", True
@@ -81,7 +72,7 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
                         else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨"
                     ),
                 )
-                await update_appeal(appeal_id, status_id=2, manager_id=user_id)
+                update_appeal(appeal_id=appeal_id, status="В обработке", operator_id=user_id)
             else:
                 await callback_query.message.edit_text("В обращении не найден id")
     except Exception as e:

@@ -6,29 +6,12 @@ from peewee import *  # https://docs.peewee-orm.com/en/latest/index.html
 
 from src.core.config.config import DB_NAME
 
-# from typing import Union
-
 # Настраиваем синхронную базу данных SQLite
 db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 """Работа с выдачей прав операторам"""
 
-# class User(Model):
-# user_id = IntegerField(primary_key=True)
-# lang = CharField(null=True)
-
-# class Meta:
-# database = db
-
-
 """Работа с базой данных"""
-
-
-# class Status(Model):
-# status = CharField(unique=True)
-
-# class Meta:
-# database = db
 
 
 class Appeal(Model):
@@ -54,7 +37,8 @@ def create_appeal(user_id, operator_id, status, rating, last_message_at, user_qu
     db.connect()  # Подсоединяемся к базе данных
     db.create_tables([Appeal])  # Создаем таблицу, если она не существует
 
-    Appeal.get_or_create(
+    # Получаем или создаём запись
+    appeal, created = Appeal.get_or_create(
         user_id=user_id,  # Telegram ID пользователя Telegram
         operator_id=operator_id,
         # Telegram ID оператора (При первом обращении оператор не присваивается, а присваивается None)
@@ -66,6 +50,8 @@ def create_appeal(user_id, operator_id, status, rating, last_message_at, user_qu
         phone=phone,  # Номер телефона пользователя
     )
     db.close()  # Закрываем соединение с базой данных
+    # Возвращаем ID созданной (или существующей) записи
+    return appeal.id  # <-- ID из базы данных
 
 
 def check_user_active_appeal(user_id, status) -> bool:
@@ -83,18 +69,6 @@ def check_user_active_appeal(user_id, status) -> bool:
         ).count()
 
         return count > 0  # Если больше нуля, то возвращаем True, иначе False
-
-    # try:
-    #     with db:
-    #     status = Status.select().where(Status.id == status_id).get_or_none()
-    #     if not status:
-    #     status = Status.select().where(Status.status == "В ожидании").get()
-
-    #     appeal = Appeal.create(user=user_id, status=status)
-    #     return appeal.id
-    # except Exception as e:
-    #     logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
-    #     return 0
 
 
 def register_user(user_data) -> None:
@@ -121,69 +95,88 @@ def register_user(user_data) -> None:
     )
 
 
-# def get_status_name(status_id: int) -> str:
-# """Получает название статуса по его ID"""
-# try:
-# with db:
-# status = Status.select().where(Status.id == status_id).get_or_none()
-# return status.status if status else ""
-# except Exception as e:
-# logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
-# return ""
-
-
-# def get_appeal(**kwargs):
-#     """Получает обращение по фильтрам"""
-#     try:
-#         with db:
-#             query = Appeal.select()
-#             for key, value in kwargs.items():
-#                 field = getattr(Appeal, key)
-#                 query = query.where(field == value)
-
-#             # Собираем результаты в список словарей вручную
-#             result = []
-#             for appeal in query:
-#                 appeal_dict = {
-#                     "id": appeal.id,
-#                     "user_id": appeal.user.user_id_operator if appeal.user else None,
-#                     "manager_id": (
-#                         appeal.manager.user_id_operator if appeal.manager else None
-#                     ),
-#                     "status": appeal.status.id if appeal.status else None,
-#                     "rating": appeal.rating,
-#                     "last_message_at": appeal.last_message_at,
-#                 }
-#                 result.append(appeal_dict)
-
-#             return result if len(result) > 1 else result[0] if result else {}
-#     except Exception as e:
-#         logger.exception(f"Ошибка получения обращения: {e}")
-#         return {}
-
-
-def update_appeal(appeal_id: int, **kwargs):
-    """Обновляет обращение"""
-    try:
-        with db:
-            Appeal.update(**kwargs).where(Appeal.id == appeal_id).execute()
-    except Exception as e:
-        logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
+"""Проверка, есть ли у оператора активное обращение"""
 
 
 def check_manager_active_appeal(operator_id: int) -> bool:
-    """Проверяет, есть ли у менеджера активное обращение"""
+    """Проверяет, есть ли у оператора активное обращение"""
     try:
         with db:
             count = (
                 Appeal.select()
-                .where(Appeal.manager == operator_id, Appeal.status.in_([1, 2]))
+                .where(
+                    Appeal.operator_id == str(operator_id),
+                    Appeal.status.in_(("В ожидании", "В обработке"))
+                )
                 .count()
             )
             return count > 0
     except Exception as e:
         logger.exception(f"Ошибка проверки активных обращений менеджера {operator_id}: {e}")
         return False
+
+
+"""Установка языка пользователя"""
+
+
+def set_user_lang(id_user: int, lang: str):
+    """Обновляет язык пользователя по Telegram ID"""
+    with db:
+        query = Person.update({Person.lang: lang}).where(Person.id_user == id_user)
+        query.execute()
+
+
+"""Обновление обращения на статус В обработке"""
+
+
+def update_appeal(appeal_id: int, status: str, operator_id: int):
+    """Обновляет обращение"""
+    try:
+        with db:
+            Appeal.update({Appeal.status: status, Appeal.operator_id: operator_id}).where(Appeal.id == appeal_id).execute()
+            # update_appeal.execute()
+    except Exception as e:
+        logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
+
+
+"""Получение языка пользователя"""
+
+
+def get_user_lang(id_user: int) -> str | None:
+    """Возвращает язык пользователя по Telegram ID. Если пользователь не найден — None."""
+    with db:
+        user = Person.get_or_none(Person.id_user == id_user)
+        return user.lang if user else None
+
+
+def get_appeal(appeal_id):
+    """Получает обращение по ID.
+
+    :param appeal_id: ID обращения (int)
+    :return: dict с данными обращения или пустой словарь, если не найдено
+    """
+    try:
+        with db:
+            appeal = Appeal.get_or_none(Appeal.id == appeal_id)
+            if appeal is None:
+                logger.warning(f"Обращение с ID {appeal_id} не найдено")
+                return {}
+
+            # Преобразуем объект модели в словарь
+            return {
+                "id": appeal.id,
+                "user_id": appeal.user_id,
+                "operator_id": appeal.operator_id,
+                "status": appeal.status,
+                "rating": appeal.rating,
+                "last_message_at": appeal.last_message_at,
+                "user_question": appeal.user_question,
+                "full_name": appeal.full_name,
+                "phone": appeal.phone,
+            }
+    except Exception as e:
+        logger.exception(f"Ошибка получения обращения: {e}")
+        return {}
 
 
 """Запись в базу данных пользователей, запустивших бота вызвав команду /start."""
@@ -265,26 +258,6 @@ def set_operator_id(id_user: int, status_id: int):
         query.execute()
 
 
-"""Установка языка пользователя"""
-
-
-def set_user_lang(id_user: int, lang: str):
-    """Обновляет язык пользователя по Telegram ID"""
-    with db:
-        query = Person.update({Person.lang: lang}).where(Person.id_user == id_user)
-        query.execute()
-
-
-"""Получение языка пользователя"""
-
-
-def get_user_lang(id_user: int) -> str | None:
-    """Возвращает язык пользователя по Telegram ID. Если пользователь не найден — None."""
-    with db:
-        user = Person.get_or_none(Person.id_user == id_user)
-        return user.lang if user else None
-
-
 """Получение статуса пользователя зарегистрированного в Telegram боте"""
 
 
@@ -303,3 +276,13 @@ def get_operator_ids_by_status(status: str):
     with db:
         operators = Person.select().where(Person.status == status)
         return [operator.id_user for operator in operators]
+
+# def get_status_name(status_id: int) -> str:
+# """Получает название статуса по его ID"""
+# try:
+# with db:
+# status = Status.select().where(Status.id == status_id).get_or_none()
+# return status.status if status else ""
+# except Exception as e:
+# logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
+# return ""
