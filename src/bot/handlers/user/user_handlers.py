@@ -45,7 +45,7 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
             )
             await state.set_state(StartAppealStates.fio)
     except Exception as e:
-        logger.error(f"Ошибка начала создания обращения: {e} - {user_id}")
+        logger.exception(f"Ошибка начала создания обращения: {e} - {user_id}")
 
 
 @router.message(StateFilter(StartAppealStates.fio))
@@ -62,7 +62,7 @@ async def fio_appeal(message: Message, state: FSMContext):
         )
         await state.set_state(StartAppealStates.phone)
     except Exception as e:
-        logger.error(f"Ошибка ввода ФИО обращения: {e} - {message.chat.id}")
+        logger.exception(f"Ошибка ввода ФИО обращения: {e} - {message.chat.id}")
 
 
 @router.message(StateFilter(StartAppealStates.phone))
@@ -79,7 +79,7 @@ async def phone_appeal(message: Message, state: FSMContext):
         )
         await state.set_state(StartAppealStates.question)
     except Exception as e:
-        logger.error(f"Ошибка ввода номера телефона обращения: {e} - {message.chat.id}")
+        logger.exception(f"Ошибка ввода номера телефона обращения: {e} - {message.chat.id}")
 
 
 @router.message(StateFilter(StartAppealStates.question))
@@ -104,7 +104,7 @@ async def question_appeal(message: Message, state: FSMContext):
 \nЕсли всё верно, подтвердите, иначе измените данные"""
         await message.answer(text, reply_markup=consent_or_edit_my_appeal(lang))
     except Exception as e:
-        logger.error(f"Ошибка ввода вопроса обращения: {e} - {message.chat.id}")
+        logger.exception(f"Ошибка ввода вопроса обращения: {e} - {message.chat.id}")
 
 
 @router.callback_query(F.data == "consent_my_appeal")
@@ -144,7 +144,7 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
         for id_operator in ids:
             await bot.send_message(id_operator, text, reply_markup=manage_appeal())
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"Ошибка регистрации обращения: {e} - {callback_query.from_user.id}"
         )
     finally:
@@ -167,7 +167,7 @@ async def start_edit_appeal(callback_query: CallbackQuery, state: FSMContext):
         )
         await state.set_state(StartAppealStates.edit_type)
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"Ошибка начала изменения обращения: {e} - {callback_query.from_user.id}"
         )
 
@@ -201,7 +201,7 @@ async def edit_type_appeal(callback_query: CallbackQuery, state: FSMContext):
             )
         await state.set_state(StartAppealStates.edit)
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"Ошибка начала изменения обращения: {e} - {callback_query.from_user.id}"
         )
 
@@ -228,7 +228,7 @@ async def edit_appeal(message: Message, state: FSMContext):
 \nЕсли всё верно, подтвердите, иначе измените данные"""
         await message.answer(text, reply_markup=consent_or_edit_my_appeal(lang))
     except Exception as e:
-        logger.error(f"Ошибка изменения обращения: {e} - {message.from_user.id}")
+        logger.exception(f"Ошибка изменения обращения: {e} - {message.from_user.id}")
 
 
 @router.callback_query(F.data.startswith("set_rating-"))
@@ -242,7 +242,7 @@ async def set_rating(callback_query: CallbackQuery):
         await db.update_appeal_data(data[1], rating=data[2])
         logger.info(f"Установлен рейтинг для обращения {data[1]} - {data[2]}")
     except Exception as e:
-        logger.error(f"Ошибка установки рейтинга: {e} - {callback_query.from_user.id}")
+        logger.exception(f"Ошибка установки рейтинга: {e} - {callback_query.from_user.id}")
 
 
 def register_user_handler():

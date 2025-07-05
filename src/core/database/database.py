@@ -12,6 +12,7 @@ db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 """Работа с выдачей прав операторам"""
 
+
 # class User(Model):
 # user_id = IntegerField(primary_key=True)
 # lang = CharField(null=True)
@@ -31,12 +32,11 @@ db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 
 class Appeal(Model):
-    user_id = CharField(null=True)  # Кто создал обращение (ID пользователя)
-    manager_id = CharField(null=True)  # Кто обрабатывает (ID оператора)
+    user = CharField(null=True)  # Кто создал обращение
+    manager = CharField(null=True)  # Кто обрабатывает
     status = CharField(null=True)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
-    question = CharField(null=True)  # Вопрос от пользователя
 
     class Meta:
         database = db
@@ -53,7 +53,7 @@ class Appeal(Model):
 # logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
 # return ""
 
-# TODO - Добавить создание обращения
+
 # def create_appeal(user_id: int, status_id: int = 1) -> int:
 # """Создаёт обращение для пользователя"""
 # try:
@@ -69,7 +69,7 @@ class Appeal(Model):
 # return 0
 
 
-def get_appeal(**kwargs) -> Union[dict, list[dict]]:
+def get_appeal(**kwargs):
     """Получает обращение по фильтрам"""
     try:
         with db:
@@ -95,7 +95,7 @@ def get_appeal(**kwargs) -> Union[dict, list[dict]]:
 
             return result if len(result) > 1 else result[0] if result else {}
     except Exception as e:
-        logger.error(f"Ошибка получения обращения: {e}")
+        logger.exception(f"Ошибка получения обращения: {e}")
         return {}
 
 
@@ -105,7 +105,7 @@ def update_appeal(appeal_id: int, **kwargs):
         with db:
             Appeal.update(**kwargs).where(Appeal.id == appeal_id).execute()
     except Exception as e:
-        logger.error(f"Ошибка обновления обращения {appeal_id}: {e}")
+        logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
 
 
 def check_user_active_appeal(user_id: int) -> bool:
@@ -119,7 +119,7 @@ def check_user_active_appeal(user_id: int) -> bool:
             )
             return count > 0
     except Exception as e:
-        logger.error(f"Ошибка проверки активных обращений пользователя {user_id}: {e}")
+        logger.exception(f"Ошибка проверки активных обращений пользователя {user_id}: {e}")
         return False
 
 
@@ -134,7 +134,7 @@ def check_manager_active_appeal(manager_id: int) -> bool:
             )
             return count > 0
     except Exception as e:
-        logger.error(f"Ошибка проверки активных обращений менеджера {manager_id}: {e}")
+        logger.exception(f"Ошибка проверки активных обращений менеджера {manager_id}: {e}")
         return False
 
 
@@ -146,9 +146,7 @@ class Person(Model):
     Хранит информацию о пользователях, запустивших Telegram-бота вызвав команду /start.
     """
 
-    id_user = IntegerField(
-        unique=True
-    )  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
+    id_user = IntegerField(unique=True)  # Telegram ID пользователя Telegram (unique=True - уникальный ID)
     first_name = CharField(null=True)  # Telegram Имя пользователя
     last_name = CharField(null=True)  # Telegram Фамилия пользователя
     username_tg = CharField(null=True)  # Telegram username
@@ -179,9 +177,7 @@ def register_user(user_data) -> None:
             "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
             "username_tg": user_data.get("username_tg"),  # Telegram username
             "lang": user_data.get("lang"),  # Язык пользователя
-            "status": user_data.get(
-                "status"
-            ),  # Статус пользователя (operator, admin, user)
+            "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
             "username": user_data.get("username"),  # Username, 'operator', 'admin'
             "password": user_data.get("password"),  # Password для веб-авторизации
             "created_at": user_data.get("date"),  # Время запуска

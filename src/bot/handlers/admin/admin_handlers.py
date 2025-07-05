@@ -25,7 +25,7 @@ close_timers = {}
 
 
 async def close_appeal_timeout(
-        appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30
+    appeal_id: int, user_id: int, manager_id: int, timeout_seconds=30
 ):
     try:
         while True:
