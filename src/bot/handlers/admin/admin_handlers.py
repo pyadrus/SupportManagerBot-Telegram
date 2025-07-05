@@ -18,7 +18,7 @@ from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
     # get_appeal,
     update_appeal,
-    get_user_lang,
+    get_user_lang, get_appeal,
 )
 
 close_timers = {}
@@ -221,47 +221,51 @@ async def close_appeal_by_manager(message: Message):
         await message.answer("Произошла ошибка при закрытии заявки")
 
 
-# @router.message(F.text)
-# async def manager_answer_appeal(message: Message):
-#     """Сообщения от операторов"""
-#     try:
-#         logger.info(f"Ответ обращению - {message.chat.id}")
-#         appeal = None
-#         # appeal = get_appeal(manager_id=message.chat.id, status_id=2)
-#         if appeal and isinstance(appeal, dict):
-#             await bot.send_message(appeal["user_id"], message.text)
-#             update_appeal(
-#                 appeal["id"],
-#                 last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
-#             )
-#
-#             await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
-#         else:
-#             await message.answer("Я не смог найти обращение, попробуйте позже")
-#     except Exception as e:
-#         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
-#         await message.answer("Произошла ошибка, попробуйте ещё раз")
+@router.message(F.text)
+async def manager_answer_appeal(message: Message):
+    """Сообщения от операторов"""
+    try:
+        logger.info(f"Ответ от оператора - {message.from_user.id}")
+        appeal = get_appeal(operator_id=message.from_user.id)
+
+        if appeal and isinstance(appeal, dict):
+            await bot.send_message(appeal["user_id"], message.text)
+            update_appeal(
+                appeal["id"],
+                last_message_at=datetime.now()
+            )
+
+            # Перезапускаем таймер
+            await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
+        else:
+            await message.answer("Вы не обслуживаете ни одно обращение")
+    except Exception as e:
+        logger.error(f"Ошибка ответа на обращение: {e} - {message.from_user.id}")
+        await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
-# @router.message(F.text)
-# async def client_answer_appeal(message: Message):
-#     """Сообщения от пользователя"""
-#     try:
-#         logger.info(f"Ответ обращению - {message.chat.id}")
-#         appeal = None
-#         # appeal = get_appeal(user_id=message.chat.id, status_id=2)
-#         if appeal and isinstance(appeal, dict):
-#             if appeal["manager_id"]:
-#                 await start_timer(
-#                     appeal["id"], message.from_user.id, appeal["manager_id"]
-#                 )
-#                 await bot.send_message(appeal["manager_id"], message.text)
-#                 update_appeal(appeal["id"], last_message_at=datetime.now())
-#             else:
-#                 await message.answer("Дождитесь оператора")
-#     except Exception as e:
-#         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
-#         await message.answer("Произошла ошибка, попробуйте ещё раз")
+@router.message(F.text)
+async def client_answer_appeal(message: Message):
+    """Сообщения от пользователя"""
+    try:
+        logger.info(f"Ответ от клиента - {message.from_user.id}")
+        appeal = get_appeal(user_id=message.from_user.id)
+
+        if appeal and isinstance(appeal, dict):
+            if appeal["operator_id"]:
+                await bot.send_message(appeal["operator_id"], f"🧑‍💻 Клиент:\n{message.text}")
+                update_appeal(
+                    appeal["id"],
+                    last_message_at=datetime.now()
+                )
+                await start_timer(appeal["id"], appeal["user_id"], appeal["operator_id"])
+            else:
+                await message.answer("Ожидайте подключения оператора...")
+        else:
+            await message.answer("Обращение не найдено.")
+    except Exception as e:
+        logger.error(f"Ошибка ответа от клиента: {e} - {message.from_user.id}")
+        await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
 @router.message(Command(commands=["admin"]), AdminFilter())
