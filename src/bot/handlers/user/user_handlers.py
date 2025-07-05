@@ -16,6 +16,7 @@ from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
     check_user_active_appeal,
+    create_appeal,
     db,
     get_operator_ids_by_status,
     get_user_lang,
@@ -31,6 +32,10 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
         lang = get_user_lang(id_user=user_id)  # Получаем язык пользователя
         logger.info(f"Язык пользователя {user_id}: {lang}")
         await callback_query.answer()
+        
+        status = check_user_active_appeal(user_id=user_id, status="В ожидании")
+        logger.info(status)
+        
         if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
             await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед"
@@ -121,21 +126,30 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
             if lang == "tj"
             else "✅ <b>Ваша заявка принята!</b> Ожидайте, наш специалист скоро свяжется с вами. Мы работаем, пока город спит... 🌙"
         )
-        appeal_id = create_appeal(callback_query.from_user.id)
-        update_appeal(
-            appeal_id, last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        )
+        
+        create_appeal(
+            user_id=callback_query.from_user.id, 
+            operator_id=None,  
+            status="В ожидании",
+            rating=None, 
+            last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"), 
+            user_question = data['question'],
+            full_name=data['fio'],
+            phone=data['phone'],
+            )
+        # appeal_id = create_appeal(callback_query.from_user.id)
+        # update_appeal(appeal_id, last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
 
         data = await state.get_data()
         text = f"""
-🆕 Обращение {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}
-🆔 <code>#{appeal_id}</code>
-🕛 Дата создания: <code>{datetime.now().strftime("%d.%m.%Y %H:%M:%S")}</code>
+                🆕 Обращение {f'@{callback_query.from_user.username}' if callback_query.from_user.username else f'<code>{callback_query.from_user.id}</code>'}
+                🆔 <code>#{appeal_id}</code>
+                🕛 Дата создания: <code>{datetime.now().strftime("%d.%m.%Y %H:%M:%S")}</code>
 
-<b>ФИО:</b> <code>{data['fio']}</code>
-<b>Телефон:</b> <code>{data['phone']}</code>
-<b>Вопрос:</b> <code>{data['question']}</code>
-        """
+                <b>ФИО:</b> <code>{data['fio']}</code>
+                <b>Телефон:</b> <code>{data['phone']}</code>
+                <b>Вопрос:</b> <code>{data['question']}</code>
+                """
 
         # Получаем ID менеджеров для отправки заявки пользователя
         ids = get_operator_ids_by_status(status="operator")

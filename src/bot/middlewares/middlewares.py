@@ -4,8 +4,10 @@ from aiogram.types import Message
 from loguru import logger
 
 from src.core.config.config import ADMIN
-from src.core.database.database import (check_manager_active_appeal,
-                                        check_user_active_appeal)
+from src.core.database.database import (
+    check_manager_active_appeal,
+    # check_user_active_appeal,
+)
 
 
 class AdminFilter(Filter):
@@ -19,23 +21,23 @@ class AdminFilter(Filter):
             return False
 
 
-class ManagerAppealsFilter(Filter):
-    """Проверка на наличие активных обращений менеджера"""
+# class ManagerAppealsFilter(Filter):
+#     """Проверка на наличие активных обращений менеджера"""
 
-    async def __call__(self, message: Message) -> bool:
-        try:
-            return check_manager_active_appeal(message.from_user.id)
-        except Exception as e:
-            logger.exception(e)
-            return False
+#     async def __call__(self, message: Message) -> bool:
+#         try:
+#             return check_manager_active_appeal(message.from_user.id)
+#         except Exception as e:
+#             logger.exception(e)
+#             return False
 
 
-class UserAppealsFilter(Filter):
-    """Проверка на наличие активных обращений пользователя"""
+# class UserAppealsFilter(Filter):
+#     """Проверка на наличие активных обращений пользователя"""
 
-    async def __call__(self, message: Message) -> bool:
-        try:
-            return check_user_active_appeal(message.from_user.id)
-        except Exception as e:
-            logger.exception(e)
-            return False
+#     async def __call__(self, message: Message) -> bool:
+#         try:
+#             return check_user_active_appeal(message.from_user.id)
+#         except Exception as e:
+#             logger.exception(e)
+#             return False

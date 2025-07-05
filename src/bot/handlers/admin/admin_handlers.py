@@ -12,11 +12,11 @@ from src.bot.keyboards.user_keyboards import set_rating, stat_period
 from src.bot.middlewares.middlewares import (
     AdminFilter,
     ManagerAppealsFilter,
-    UserAppealsFilter,
+    # UserAppealsFilter,
 )
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
-    get_appeal,
+    # get_appeal,
     update_appeal,
     get_user_lang,
 )
@@ -240,7 +240,7 @@ async def manager_answer_appeal(message: Message):
         await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
-@router.message(UserAppealsFilter(), F.text)
+@router.message(F.text)
 async def client_answer_appeal(message: Message):
     """Сообщения от пользователя"""
     try:
@@ -284,7 +284,7 @@ def register_handlers_admin():
 
     # --- Message handlers (текстовые сообщения) ---
     router.message.register(manager_answer_appeal, ManagerAppealsFilter(), F.text)
-    router.message.register(client_answer_appeal, UserAppealsFilter(), F.text)
+    router.message.register(client_answer_appeal, F.text)
     router.message.register(
         close_appeal_by_manager,
         ManagerAppealsFilter(),

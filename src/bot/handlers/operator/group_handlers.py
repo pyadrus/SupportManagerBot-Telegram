@@ -10,9 +10,14 @@ from loguru import logger
 
 from src.bot.keyboards.user_keyboards import close_appeal
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import (Appeal, check_manager_active_appeal, db,
-                                        get_appeal, get_user_lang,
-                                        update_appeal)
+from src.core.database.database import (
+    Appeal,
+    check_manager_active_appeal,
+    db,
+    # get_appeal,
+    get_user_lang,
+    update_appeal,
+)
 
 
 @router.callback_query(F.data == "accept_appeal")

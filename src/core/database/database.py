@@ -32,15 +32,76 @@ db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 
 class Appeal(Model):
-    user = CharField(null=True)  # Кто создал обращение
-    manager = CharField(null=True)  # Кто обрабатывает
+    user_id = CharField(null=True)  # Кто создал обращение (ID Telegram пользователя)
+    operator_id = CharField(null=True)  # Кто обрабатывает (ID Telegram оператора)
     status = CharField(null=True)  # Статус
     rating = IntegerField(null=True)  # Оценка
     last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
+    user_question = CharField(null=True)  # Вопрос пользователя
+    full_name = CharField(null=True)  # Полное имя пользователя (Имя + Фамилия + Отчество)
+    phone = CharField(null=True)  # Номер телефона пользователя
 
     class Meta:
         database = db
         table_name = "appeals"
+
+"""Записываем данные обращения в базу данных, таблицу appeals."""
+
+def create_appeal(user_id, operator_id,  status,rating, last_message_at, user_question, full_name, phone):
+    """Создаёт обращение для пользователя"""
+    db.connect()  # Подсоединяемся к базе данных
+    db.create_tables([Appeal])  # Создаем таблицу, если она не существует
+
+    Appeal.get_or_create(
+        user_id=user_id,  # Telegram ID пользователя Telegram
+        operator_id = operator_id,  # Telegram ID оператора (При первом обращении оператор не присваивается, а присваивается None)
+        status = status,  # Статус обращения (В ожидании, Обрабатывается, Закрыто)
+        rating = rating, # Присваивается в начале None, так как при первой записи, рейтинга нет
+        last_message_at = last_message_at, # Время последнего сообщения
+        user_question = user_question, # Вопрос пользователя
+        full_name = full_name, # Полное имя пользователя (Имя + Фамилия + Отчество)
+        phone = phone, # Номер телефона пользователя
+    )
+    db.close()  # Закрываем соединение с базой данных
+    # try:
+    #     with db:
+    #     status = Status.select().where(Status.id == status_id).get_or_none()
+    #     if not status:
+    #     status = Status.select().where(Status.status == "В ожидании").get()
+
+    #     appeal = Appeal.create(user=user_id, status=status)
+    #     return appeal.id
+    # except Exception as e:
+    #     logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
+    #     return 0
+
+
+def register_user(user_data) -> None:
+    """
+    Записывает данные пользователя в базу данных, который вызвал команду /start.
+
+    :param user_data: Словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
+    """
+    db.connect()  # Подсоединяемся к базе данных
+    db.create_tables([Person])  # Создаем таблицу, если она не существует
+
+    Person.get_or_create(
+        id_user=user_data["id"],  # Telegram ID пользователя Telegram
+        defaults={
+            "first_name": user_data.get("first_name"),  # Telegram Имя пользователя
+            "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
+            "username_tg": user_data.get("username_tg"),  # Telegram username
+            "lang": user_data.get("lang"),  # Язык пользователя
+            "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
+            "username": user_data.get("username"),  # Username, 'operator', 'admin'
+            "password": user_data.get("password"),  # Password для веб-авторизации
+            "created_at": user_data.get("date"),  # Время запуска
+        },
+    )
+
+
+
+
 
 
 # def get_status_name(status_id: int) -> str:
@@ -54,49 +115,37 @@ class Appeal(Model):
 # return ""
 
 
-# def create_appeal(user_id: int, status_id: int = 1) -> int:
-# """Создаёт обращение для пользователя"""
-# try:
-# with db:
-# status = Status.select().where(Status.id == status_id).get_or_none()
-# if not status:
-# status = Status.select().where(Status.status == "В ожидании").get()
-
-# appeal = Appeal.create(user=user_id, status=status)
-# return appeal.id
-# except Exception as e:
-# logger.error(f"Ошибка создания обращения для пользователя {user_id}: {e}")
-# return 0
 
 
-def get_appeal(**kwargs):
-    """Получает обращение по фильтрам"""
-    try:
-        with db:
-            query = Appeal.select()
-            for key, value in kwargs.items():
-                field = getattr(Appeal, key)
-                query = query.where(field == value)
 
-            # Собираем результаты в список словарей вручную
-            result = []
-            for appeal in query:
-                appeal_dict = {
-                    "id": appeal.id,
-                    "user_id": appeal.user.user_id_operator if appeal.user else None,
-                    "manager_id": (
-                        appeal.manager.user_id_operator if appeal.manager else None
-                    ),
-                    "status_id": appeal.status.id if appeal.status else None,
-                    "rating": appeal.rating,
-                    "last_message_at": appeal.last_message_at,
-                }
-                result.append(appeal_dict)
+# def get_appeal(**kwargs):
+#     """Получает обращение по фильтрам"""
+#     try:
+#         with db:
+#             query = Appeal.select()
+#             for key, value in kwargs.items():
+#                 field = getattr(Appeal, key)
+#                 query = query.where(field == value)
 
-            return result if len(result) > 1 else result[0] if result else {}
-    except Exception as e:
-        logger.exception(f"Ошибка получения обращения: {e}")
-        return {}
+#             # Собираем результаты в список словарей вручную
+#             result = []
+#             for appeal in query:
+#                 appeal_dict = {
+#                     "id": appeal.id,
+#                     "user_id": appeal.user.user_id_operator if appeal.user else None,
+#                     "manager_id": (
+#                         appeal.manager.user_id_operator if appeal.manager else None
+#                     ),
+#                     "status": appeal.status.id if appeal.status else None,
+#                     "rating": appeal.rating,
+#                     "last_message_at": appeal.last_message_at,
+#                 }
+#                 result.append(appeal_dict)
+
+#             return result if len(result) > 1 else result[0] if result else {}
+#     except Exception as e:
+#         logger.exception(f"Ошибка получения обращения: {e}")
+#         return {}
 
 
 def update_appeal(appeal_id: int, **kwargs):
@@ -108,33 +157,28 @@ def update_appeal(appeal_id: int, **kwargs):
         logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
 
 
-def check_user_active_appeal(user_id: int) -> bool:
+def check_user_active_appeal(user_id, status) -> bool:
     """Проверяет, есть ли у пользователя активное обращение"""
-    try:
-        with db:
-            count = (
-                Appeal.select()
-                .where(Appeal.user == user_id, Appeal.status.in_([1, 2]))
-                .count()
-            )
-            return count > 0
-    except Exception as e:
-        logger.exception(f"Ошибка проверки активных обращений пользователя {user_id}: {e}")
-        return False
+    with db:
+        status_question = (
+            Appeal.select().where(Appeal.user_id == user_id, Appeal.status== status)
+            .count()
+        )
+        return [status.user_id for status in status]
 
 
-def check_manager_active_appeal(manager_id: int) -> bool:
+def check_manager_active_appeal(operator_id: int) -> bool:
     """Проверяет, есть ли у менеджера активное обращение"""
     try:
         with db:
             count = (
                 Appeal.select()
-                .where(Appeal.manager == manager_id, Appeal.status.in_([1, 2]))
+                .where(Appeal.manager == operator_id, Appeal.status.in_([1, 2]))
                 .count()
             )
             return count > 0
     except Exception as e:
-        logger.exception(f"Ошибка проверки активных обращений менеджера {manager_id}: {e}")
+        logger.exception(f"Ошибка проверки активных обращений менеджера {operator_id}: {e}")
         return False
 
 
@@ -161,28 +205,7 @@ class Person(Model):
         table_name = "registered_users"  # Имя таблицы
 
 
-def register_user(user_data) -> None:
-    """
-    Записывает данные пользователя в базу данных, который вызвал команду /start.
 
-    :param user_data: Словарь с данными пользователя, для последующей записи в БД src/core/database/database.db
-    """
-    db.connect()  # Подсоединяемся к базе данных
-    db.create_tables([Person])  # Создаем таблицу, если она не существует
-
-    Person.get_or_create(
-        id_user=user_data["id"],  # Telegram ID пользователя Telegram
-        defaults={
-            "first_name": user_data.get("first_name"),  # Telegram Имя пользователя
-            "last_name": user_data.get("last_name"),  # Telegram Фамилия пользователя
-            "username_tg": user_data.get("username_tg"),  # Telegram username
-            "lang": user_data.get("lang"),  # Язык пользователя
-            "status": user_data.get("status"),  # Статус пользователя (operator, admin, user)
-            "username": user_data.get("username"),  # Username, 'operator', 'admin'
-            "password": user_data.get("password"),  # Password для веб-авторизации
-            "created_at": user_data.get("date"),  # Время запуска
-        },
-    )
 
 
 """Чтение данных из базы данных, для проверки данных внесенных админом Telegram бота"""
