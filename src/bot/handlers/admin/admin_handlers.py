@@ -11,7 +11,7 @@ from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.user_keyboards import set_rating, stat_period
 from src.bot.middlewares.middlewares import (
     AdminFilter,
-    ManagerAppealsFilter,
+    # ManagerAppealsFilter,
     # UserAppealsFilter,
 )
 from src.bot.system.dispatcher import bot, router
@@ -30,7 +30,8 @@ async def close_appeal_timeout(
     try:
         while True:
             await asyncio.sleep(5)
-            appeal = get_appeal(id=appeal_id)
+            # appeal = get_appeal(id=appeal_id)
+            appeal = None
             if not appeal or appeal.get("status_id") != 2:
                 logger.info(f"Таймер закрытия для заявки #{appeal_id} остановлен")
                 break
@@ -99,7 +100,8 @@ async def statistics(call: CallbackQuery):
 
         logger.info(f"Статистика за {period} - {call.from_user.id}")
 
-        appeals_raw = get_appeal()
+        appeals_raw = None
+        # appeals_raw = get_appeal()
 
         if isinstance(appeals_raw, dict):
             appeals = [appeals_raw] if appeals_raw else []
@@ -165,6 +167,7 @@ async def statistics(call: CallbackQuery):
         status_texts = []
         for status_id, count in appeals_statuses.items():
             # status_name = get_status_name(status_id) or f"Статус {status_id}"
+            status_name = None
             status_texts.append(f"{status_name}: {count}")
         avg_rating = (
             round(sum(ratings_all) / len(ratings_all), 2)
@@ -189,12 +192,11 @@ async def statistics(call: CallbackQuery):
         )
 
 
-@router.message(
-    F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]), ManagerAppealsFilter()
-)
+@router.message(F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]))
 async def close_appeal_by_manager(message: Message):
     try:
-        appeal = get_appeal(manager_id=message.from_user.id, status_id=2)
+        appeal = None
+        # appeal = get_appeal(manager_id=message.from_user.id, status_id=2)
         if not appeal:
             await message.answer("Заявка не найдена")
             return
@@ -219,45 +221,47 @@ async def close_appeal_by_manager(message: Message):
         await message.answer("Произошла ошибка при закрытии заявки")
 
 
-@router.message(ManagerAppealsFilter(), F.text)
-async def manager_answer_appeal(message: Message):
-    """Сообщения от операторов"""
-    try:
-        logger.info(f"Ответ обращению - {message.chat.id}")
-        appeal = get_appeal(manager_id=message.chat.id, status_id=2)
-        if appeal and isinstance(appeal, dict):
-            await bot.send_message(appeal["user_id"], message.text)
-            update_appeal(
-                appeal["id"],
-                last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
-            )
+# @router.message(F.text)
+# async def manager_answer_appeal(message: Message):
+#     """Сообщения от операторов"""
+#     try:
+#         logger.info(f"Ответ обращению - {message.chat.id}")
+#         appeal = None
+#         # appeal = get_appeal(manager_id=message.chat.id, status_id=2)
+#         if appeal and isinstance(appeal, dict):
+#             await bot.send_message(appeal["user_id"], message.text)
+#             update_appeal(
+#                 appeal["id"],
+#                 last_message_at=datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+#             )
+#
+#             await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
+#         else:
+#             await message.answer("Я не смог найти обращение, попробуйте позже")
+#     except Exception as e:
+#         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
+#         await message.answer("Произошла ошибка, попробуйте ещё раз")
 
-            await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
-        else:
-            await message.answer("Я не смог найти обращение, попробуйте позже")
-    except Exception as e:
-        logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
-        await message.answer("Произошла ошибка, попробуйте ещё раз")
 
-
-@router.message(F.text)
-async def client_answer_appeal(message: Message):
-    """Сообщения от пользователя"""
-    try:
-        logger.info(f"Ответ обращению - {message.chat.id}")
-        appeal = get_appeal(user_id=message.chat.id, status_id=2)
-        if appeal and isinstance(appeal, dict):
-            if appeal["manager_id"]:
-                await start_timer(
-                    appeal["id"], message.from_user.id, appeal["manager_id"]
-                )
-                await bot.send_message(appeal["manager_id"], message.text)
-                update_appeal(appeal["id"], last_message_at=datetime.now())
-            else:
-                await message.answer("Дождитесь оператора")
-    except Exception as e:
-        logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
-        await message.answer("Произошла ошибка, попробуйте ещё раз")
+# @router.message(F.text)
+# async def client_answer_appeal(message: Message):
+#     """Сообщения от пользователя"""
+#     try:
+#         logger.info(f"Ответ обращению - {message.chat.id}")
+#         appeal = None
+#         # appeal = get_appeal(user_id=message.chat.id, status_id=2)
+#         if appeal and isinstance(appeal, dict):
+#             if appeal["manager_id"]:
+#                 await start_timer(
+#                     appeal["id"], message.from_user.id, appeal["manager_id"]
+#                 )
+#                 await bot.send_message(appeal["manager_id"], message.text)
+#                 update_appeal(appeal["id"], last_message_at=datetime.now())
+#             else:
+#                 await message.answer("Дождитесь оператора")
+#     except Exception as e:
+#         logger.error(f"Ошибка ответа на обращение: {e} - {message.chat.id}")
+#         await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
 @router.message(Command(commands=["admin"]), AdminFilter())
@@ -277,19 +281,13 @@ def register_handlers_admin():
     # --- Callback handlers ---
     router.callback_query.register(ask_period, F.data == "statistic", AdminFilter())
     router.callback_query.register(statistics, F.data.startswith("statistic-"))
-    router.callback_query.register(
-        close_appeal_by_manager, F.data == "close_appeal_by_manager"
-    )  # Если есть такая кнопка
+    router.callback_query.register(close_appeal_by_manager, F.data == "close_appeal_by_manager")  # Если есть такая кнопка
     router.callback_query.register(set_rating, F.data.startswith("set_rating-"))
 
     # --- Message handlers (текстовые сообщения) ---
-    router.message.register(manager_answer_appeal, ManagerAppealsFilter(), F.text)
-    router.message.register(client_answer_appeal, F.text)
-    router.message.register(
-        close_appeal_by_manager,
-        ManagerAppealsFilter(),
-        F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]),
-    )
+    # router.message.register(manager_answer_appeal, F.text)
+    # router.message.register(client_answer_appeal, F.text)
+    router.message.register(close_appeal_by_manager, F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]))
 
     # --- Command handlers ---
     router.message.register(admin, Command(commands=["admin"]), AdminFilter())

@@ -56,7 +56,8 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
             appeal_id = extract_appeal_id(text)
             logger.info(f" Запрос принятия обращения от {appeal_id}")
             if appeal_id:
-                appeal = get_appeal(id=appeal_id)
+                appeal = None
+                # appeal = get_appeal(id=appeal_id)
                 logger.info(f"Принято обращение #{appeal_id} от {user_id}. {appeal}")
                 if appeal["user_id"] == user_id:
                     await callback_query.answer(

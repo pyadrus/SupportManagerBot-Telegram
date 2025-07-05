@@ -5,11 +5,9 @@ import logging
 from loguru import logger
 
 from src.bot.handlers.admin.admin_handlers import register_handlers_admin
-from src.bot.handlers.admin.granting_rights import \
-    register_granting_rights_handlers
+from src.bot.handlers.admin.granting_rights import register_granting_rights_handlers
 from src.bot.handlers.greet_handlers import register_commands
-from src.bot.handlers.operator.group_handlers import \
-    register_manager_handlers_group
+from src.bot.handlers.operator.group_handlers import register_manager_handlers_group
 from src.bot.handlers.user.user_handlers import register_user_handler
 from src.bot.system.dispatcher import bot, dp
 from src.core.database.database import Appeal, db

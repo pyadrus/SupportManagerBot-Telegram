@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from typing import Union
 
 from loguru import logger
 from peewee import *  # https://docs.peewee-orm.com/en/latest/index.html
 
 from src.core.config.config import DB_NAME
 
+# from typing import Union
+
 # Настраиваем синхронную базу данных SQLite
 db = SqliteDatabase(f"src/core/database/{DB_NAME}")
 
 """Работа с выдачей прав операторам"""
-
 
 # class User(Model):
 # user_id = IntegerField(primary_key=True)
@@ -45,24 +45,40 @@ class Appeal(Model):
         database = db
         table_name = "appeals"
 
+
 """Записываем данные обращения в базу данных, таблицу appeals."""
 
-def create_appeal(user_id, operator_id,  status,rating, last_message_at, user_question, full_name, phone):
+
+def create_appeal(user_id, operator_id, status, rating, last_message_at, user_question, full_name, phone):
     """Создаёт обращение для пользователя"""
     db.connect()  # Подсоединяемся к базе данных
     db.create_tables([Appeal])  # Создаем таблицу, если она не существует
 
     Appeal.get_or_create(
         user_id=user_id,  # Telegram ID пользователя Telegram
-        operator_id = operator_id,  # Telegram ID оператора (При первом обращении оператор не присваивается, а присваивается None)
-        status = status,  # Статус обращения (В ожидании, Обрабатывается, Закрыто)
-        rating = rating, # Присваивается в начале None, так как при первой записи, рейтинга нет
-        last_message_at = last_message_at, # Время последнего сообщения
-        user_question = user_question, # Вопрос пользователя
-        full_name = full_name, # Полное имя пользователя (Имя + Фамилия + Отчество)
-        phone = phone, # Номер телефона пользователя
+        operator_id=operator_id,
+        # Telegram ID оператора (При первом обращении оператор не присваивается, а присваивается None)
+        status=status,  # Статус обращения (В ожидании, Обрабатывается, Закрыто)
+        rating=rating,  # Присваивается в начале None, так как при первой записи, рейтинга нет
+        last_message_at=last_message_at,  # Время последнего сообщения
+        user_question=user_question,  # Вопрос пользователя
+        full_name=full_name,  # Полное имя пользователя (Имя + Фамилия + Отчество)
+        phone=phone,  # Номер телефона пользователя
     )
     db.close()  # Закрываем соединение с базой данных
+
+
+def check_user_active_appeal(user_id, status) -> bool:
+    """Проверяет, есть ли у пользователя активное обращение"""
+    with db:
+        # Получаем количество записей с заданным статусом у пользователя
+        count = Appeal.select().where(
+            Appeal.user_id == str(user_id),
+            Appeal.status == status
+        ).count()
+
+        return count > 0
+
     # try:
     #     with db:
     #     status = Status.select().where(Status.id == status_id).get_or_none()
@@ -100,10 +116,6 @@ def register_user(user_data) -> None:
     )
 
 
-
-
-
-
 # def get_status_name(status_id: int) -> str:
 # """Получает название статуса по его ID"""
 # try:
@@ -113,9 +125,6 @@ def register_user(user_data) -> None:
 # except Exception as e:
 # logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
 # return ""
-
-
-
 
 
 # def get_appeal(**kwargs):
@@ -157,16 +166,6 @@ def update_appeal(appeal_id: int, **kwargs):
         logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
 
 
-def check_user_active_appeal(user_id, status) -> bool:
-    """Проверяет, есть ли у пользователя активное обращение"""
-    with db:
-        status_question = (
-            Appeal.select().where(Appeal.user_id == user_id, Appeal.status== status)
-            .count()
-        )
-        return [status.user_id for status in status]
-
-
 def check_manager_active_appeal(operator_id: int) -> bool:
     """Проверяет, есть ли у менеджера активное обращение"""
     try:
@@ -203,9 +202,6 @@ class Person(Model):
     class Meta:  # Подключение к базе данных
         database = db  # Модель базы данных
         table_name = "registered_users"  # Имя таблицы
-
-
-
 
 
 """Чтение данных из базы данных, для проверки данных внесенных админом Telegram бота"""
