@@ -10,15 +10,12 @@ from loguru import logger
 from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.user_keyboards import set_rating, stat_period
 from src.bot.middlewares.middlewares import (
-    AdminFilter,
-    # ManagerAppealsFilter,
-    # UserAppealsFilter,
+    AdminFilter, UserAppealsFilter, ManagerAppealsFilter,
 )
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (
-    # get_appeal,
     update_appeal,
-    get_user_lang, get_appeal,
+    get_user_lang,
 )
 
 close_timers = {}
@@ -221,51 +218,68 @@ async def close_appeal_by_manager(message: Message):
         await message.answer("Произошла ошибка при закрытии заявки")
 
 
-@router.message(F.text)
+@router.message(ManagerAppealsFilter(), F.text)
 async def manager_answer_appeal(message: Message):
-    """Сообщения от операторов"""
+    """Сообщения от операторов, администраторов, операторов"""
     try:
         logger.info(f"Ответ от оператора - {message.from_user.id}")
-        appeal = get_appeal(operator_id=message.from_user.id)
+        # Проверяем статус пользователя из базы данных src/core/database/database.db
+        # status = get_user_status(message.from_user.id)
+        # if status == 'admin':  # Проверяем статус пользователя
+        #     logger.info(f"Пользователь {message.from_user.id} администратор")
+        #     return
+        #
+        # if status == 'operator':  # Проверяем статус пользователя
+        #     logger.info(f"Пользователь {message.from_user.id} оператор")
+        #     return
+        #
+        # if status == 'user':  # Проверяем статус пользователя
+        #     logger.info(f"Пользователь {message.from_user.id} пользователь")
+        #     return
 
-        if appeal and isinstance(appeal, dict):
-            await bot.send_message(appeal["user_id"], message.text)
-            update_appeal(
-                appeal["id"],
-                last_message_at=datetime.now()
-            )
+        # logger.info(f"Ответ от оператора - {message.from_user.id}")
+        # appeal = get_appeal(operator_id=message.from_user.id)
+        #
+        # if appeal and isinstance(appeal, dict):
+        #     await bot.send_message(appeal["user_id"], message.text)
+        # update_appeal(
+        #     appeal["id"],
+        #     last_message_at=datetime.now()
+        # )
 
-            # Перезапускаем таймер
-            await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
-        else:
-            await message.answer("Вы не обслуживаете ни одно обращение")
+        # Перезапускаем таймер
+        # await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
+        # else:
+        #     await message.answer("Вы не обслуживаете ни одно обращение")
     except Exception as e:
-        logger.error(f"Ошибка ответа на обращение: {e} - {message.from_user.id}")
-        await message.answer("Произошла ошибка, попробуйте ещё раз")
+        # logger.error(f"Ошибка ответа на обращение: {e} - {message.from_user.id}")
+        logger.exception(e)
+        # await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
-@router.message(F.text)
+@router.message(UserAppealsFilter(), F.text)
 async def client_answer_appeal(message: Message):
-    """Сообщения от пользователя"""
+    """Сообщения от пользователя, оператору"""
     try:
         logger.info(f"Ответ от клиента - {message.from_user.id}")
-        appeal = get_appeal(user_id=message.from_user.id)
-
-        if appeal and isinstance(appeal, dict):
-            if appeal["operator_id"]:
-                await bot.send_message(appeal["operator_id"], f"🧑‍💻 Клиент:\n{message.text}")
-                update_appeal(
-                    appeal["id"],
-                    last_message_at=datetime.now()
-                )
-                await start_timer(appeal["id"], appeal["user_id"], appeal["operator_id"])
-            else:
-                await message.answer("Ожидайте подключения оператора...")
-        else:
-            await message.answer("Обращение не найдено.")
+        # appeal = get_appeal(user_id=message.from_user.id)
+        #
+        # if appeal and isinstance(appeal, dict):
+        #     if appeal["operator_id"]:
+        #         await bot.send_message(appeal["operator_id"], f"🧑‍💻 Клиент:\n{message.text}")
+        #         update_appeal(
+        #             appeal["id"],
+        #             last_message_at=datetime.now()
+        #         )
+        # await start_timer(appeal["id"], appeal["user_id"], appeal["operator_id"])
+        # else:
+        #     await message.answer("Ожидайте подключения оператора...")
+        # else:
+        #     await message.answer("Обращение не найдено.")
     except Exception as e:
-        logger.error(f"Ошибка ответа от клиента: {e} - {message.from_user.id}")
-        await message.answer("Произошла ошибка, попробуйте ещё раз")
+        logger.exception(e)
+        # logger.error(f"Ошибка ответа от клиента: {e} - {message.from_user.id}")
+        # await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
 @router.message(Command(commands=["admin"]), AdminFilter())
@@ -285,12 +299,13 @@ def register_handlers_admin():
     # --- Callback handlers ---
     router.callback_query.register(ask_period, F.data == "statistic", AdminFilter())
     router.callback_query.register(statistics, F.data.startswith("statistic-"))
-    router.callback_query.register(close_appeal_by_manager, F.data == "close_appeal_by_manager")  # Если есть такая кнопка
+    router.callback_query.register(close_appeal_by_manager,
+                                   F.data == "close_appeal_by_manager")  # Если есть такая кнопка
     router.callback_query.register(set_rating, F.data.startswith("set_rating-"))
 
     # --- Message handlers (текстовые сообщения) ---
-    # router.message.register(manager_answer_appeal, F.text)
-    # router.message.register(client_answer_appeal, F.text)
+    router.message.register(manager_answer_appeal, F.text)
+    router.message.register(client_answer_appeal, F.text)
     router.message.register(close_appeal_by_manager, F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]))
 
     # --- Command handlers ---
