@@ -4,6 +4,7 @@ import logging
 
 from loguru import logger
 
+from bot.handlers.admin.gettingя_statistics import register_handlers_getting_statistics
 from src.bot.handlers.admin.admin_handlers import register_handlers_admin
 from src.bot.handlers.admin.granting_rights import register_granting_rights_handlers
 from src.bot.handlers.greet_handlers import register_commands
@@ -50,10 +51,11 @@ async def main():
 
         # Регистрация команд
         register_commands()  # Выбор пользователем языка и приветственное сообщение бота
-        register_user_handler()
+        register_user_handler()  # Регистрация обработчиков для пользователя
         register_handlers_admin()  # Регистрация обработчиков для админа
-        register_manager_handlers_group()
+        register_manager_handlers_group()  # Регистрация обработчиков для менеджера
         register_granting_rights_handlers()  # Регистрация обработчиков для выдачи прав
+        register_handlers_getting_statistics()  # Регистрация обработчиков для получения статистики
 
         # Запуск бота
         await dp.start_polling(bot)

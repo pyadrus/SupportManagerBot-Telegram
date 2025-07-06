@@ -7,20 +7,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from src.bot.keyboards.user_keyboards import (
-    consent_or_edit_my_appeal,
-    edit_my_appeal,
-    manage_appeal,
-)
+from src.bot.keyboards.user_keyboards import (consent_or_edit_my_appeal,
+                                              edit_my_appeal, manage_appeal)
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import (
-    check_user_active_appeal,
-    create_appeal,
-    db,
-    get_operator_ids_by_status,
-    get_user_lang,
-)
+from src.core.database.database import (check_user_active_appeal,
+                                        create_appeal, db,
+                                        get_operator_ids_by_status,
+                                        get_user_lang)
 
 
 @router.callback_query(F.data == "call_manager")

@@ -106,10 +106,6 @@ async def process_user_id_admin(message: Message, state: FSMContext):
 def register_granting_rights_handlers():
     """Регистрирует обработчики для выдачи прав оператору"""
     router.callback_query.register(give_operator, F.data == "give_operator")
-    router.message.register(
-        process_user_id_operator, StateFilter(GrantingStates.user_id_operator)
-    )
+    router.message.register(process_user_id_operator, StateFilter(GrantingStates.user_id_operator))
     router.callback_query.register(give_admin, F.data == "give_admin")
-    router.message.register(
-        process_user_id_admin, StateFilter(GrantingStates.user_id_admin)
-    )
+    router.message.register(process_user_id_admin, StateFilter(GrantingStates.user_id_admin))

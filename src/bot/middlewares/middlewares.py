@@ -4,7 +4,11 @@ from aiogram.types import Message
 from loguru import logger
 
 from src.core.config.config import ADMIN
-from src.core.database.database import get_user_status, check_manager_active_appeal, check_user_active_appeal
+from src.core.database.database import (
+    get_user_status,
+    check_manager_active_appeal,
+    check_user_active_appeal,
+)
 
 
 class AdminFilter(Filter):
@@ -26,6 +30,7 @@ class AdminFilter(Filter):
 #     async def __call__(self, message: Message) -> bool:
 #         status = get_user_status(message.from_user.id)
 #         return status in self.allowed_statuses
+
 
 class ManagerAppealsFilter(Filter):
     """Проверка на наличие активных обращений менеджера"""
