@@ -16,7 +16,7 @@ from src.core.database.database import get_appeal, get_user_lang, update_appeal
 
 close_timers = {}
 # Константа для времени ожидания (например, 5 минут)
-AUTO_CLOSE_DELAY = 300  # секунды
+AUTO_CLOSE_DELAY = 20  # секунды
 
 
 async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int):
@@ -115,8 +115,12 @@ async def manager_answer_appeal(message: Message):
         # Получаем данные из базы данных к оператору
         appeal = get_appeal(operator_id=message.from_user.id)
         logger.info(appeal)
+        if not appeal:  # Если обращение не найдено
+            return  # Выходим из функции
         # Получаем ID пользователя, который отправил сообщение в бота
         await bot.send_message(appeal["user_id"], message.text)
+        # Обновляем время последнего сообщения
+        update_appeal(appeal["id"], last_message_at=datetime.now())
         # Перезапускаем таймер
         await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
     except Exception as e:
@@ -186,9 +190,7 @@ def register_handlers_admin():
     # --- Message handlers (текстовые сообщения) ---
     router.message.register(manager_answer_appeal, F.text)
     router.message.register(client_answer_appeal, F.text)
-    router.message.register(
-        close_appeal_by_manager, F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"])
-    )
+    router.message.register(close_appeal_by_manager, F.text.in_(["❌ Закрыть заявку", "❌ Пӯшидани ариза"]))
 
     # --- Command handlers ---
     router.message.register(admin, Command(commands=["admin"]), AdminFilter())
