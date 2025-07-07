@@ -90,7 +90,8 @@ async def close_appeal_by_manager(message: Message):
             await message.answer("Заявка не найдена")
             return
         await del_close_timer(appeal["id"])
-        update_appeal(appeal_id=appeal["id"], status="Закрыто", operator_id=message.from_user.id, last_message_at=datetime.now())
+        update_appeal(appeal_id=appeal["id"], status="Закрыто", operator_id=message.from_user.id,
+                      last_message_at=datetime.now())
         lang_client = get_user_lang(appeal["user_id"])
         await bot.send_message(
             appeal["user_id"],
@@ -137,6 +138,35 @@ async def manager_answer_appeal(message: Message):
         logger.exception(e)
 
 
+@router.message(UserAppealsFilter(), F.text)
+async def client_answer_appeal(message: Message):
+    """Сообщения от пользователя, оператору"""
+    try:
+        logger.info(f"Ответ от клиента - {message.from_user.id}")
+        # Получаем данные из базы данных к оператору
+        appeal = get_appeal(user_id=message.from_user.id)
+        logger.info(appeal)
+        if not appeal:  # Если обращение не найдено
+            return  # Выходим из функции
+        # Получаем ID пользователя, который отправил сообщение в бота
+        await bot.send_message(
+            appeal["operator_id"],
+            f"🧑‍💻 Клиент:\n{message.text}"
+        )
+
+        # Обновляем время последнего сообщения
+        update_appeal(
+            appeal_id=appeal["id"],  # id обращения
+            status="В обработке",  # статус
+            operator_id=appeal["operator_id"],  # id оператора
+            last_message_at=datetime.now()  # время последнего сообщения
+        )
+        # Перезапускаем таймер
+        await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
+    except Exception as e:
+        logger.exception(e)
+
+
 async def start_timer(appeal_id: int, user_id: int, manager_id: int):
     """Запуск нового таймера автоматического закрытия"""
     if appeal_id in close_timers:
@@ -150,31 +180,6 @@ async def del_close_timer(appeal_id: int):
     task = close_timers.pop(appeal_id, None)
     if task:
         task.cancel()
-
-
-@router.message(UserAppealsFilter(), F.text)
-async def client_answer_appeal(message: Message):
-    """Сообщения от пользователя, оператору"""
-    try:
-        logger.info(f"Ответ от клиента - {message.from_user.id}")
-        # appeal = get_appeal(user_id=message.from_user.id)
-        #
-        # if appeal and isinstance(appeal, dict):
-        #     if appeal["operator_id"]:
-        #         await bot.send_message(appeal["operator_id"], f"🧑‍💻 Клиент:\n{message.text}")
-        #         update_appeal(
-        #             appeal["id"],
-        #             last_message_at=datetime.now()
-        #         )
-        # await start_timer(appeal["id"], appeal["user_id"], appeal["operator_id"])
-        # else:
-        #     await message.answer("Ожидайте подключения оператора...")
-        # else:
-        #     await message.answer("Обращение не найдено.")
-    except Exception as e:
-        logger.exception(e)
-        # logger.error(f"Ошибка ответа от клиента: {e} - {message.from_user.id}")
-        # await message.answer("Произошла ошибка, попробуйте ещё раз")
 
 
 @router.message(Command(commands=["admin"]), AdminFilter())

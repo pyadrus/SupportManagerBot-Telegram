@@ -54,21 +54,7 @@ def create_appeal(user_id, operator_id, status, rating, last_message_at, user_qu
     return appeal.id  # <-- ID из базы данных
 
 
-def check_user_active_appeal(user_id, status) -> bool:
-    """
-    Проверяет, есть ли у пользователя активное обращение
 
-    :param user_id: ID пользователя Telegram
-    :param status: Статус обращения (в ожидании, обрабатывается, закрыто)
-    """
-    with db:
-        # Получаем количество записей с заданным статусом у пользователя
-        count = Appeal.select().where(
-            Appeal.user_id == str(user_id),
-            Appeal.status == status
-        ).count()
-
-        return count > 0  # Если больше нуля, то возвращаем True, иначе False
 
 
 def register_user(user_data) -> None:
@@ -115,6 +101,21 @@ def check_manager_active_appeal(operator_id: int) -> bool:
         logger.exception(f"Ошибка проверки активных обращений менеджера {operator_id}: {e}")
         return False
 
+def check_user_active_appeal(user_id, status) -> bool:
+    """
+    Проверяет, есть ли у пользователя активное обращение
+
+    :param user_id: ID пользователя Telegram
+    :param status: Статус обращения (в ожидании, обрабатывается, закрыто)
+    """
+    with db:
+        # Получаем количество записей с заданным статусом у пользователя
+        count = Appeal.select().where(
+            Appeal.user_id == str(user_id),
+            Appeal.status == status
+        ).count()
+
+        return count > 0  # Если больше нуля, то возвращаем True, иначе False
 
 """Установка языка пользователя"""
 

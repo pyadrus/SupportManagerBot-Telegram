@@ -45,7 +45,7 @@ class UserAppealsFilter(Filter):
     async def __call__(self, message: Message) -> bool:
         try:
             user_id = message.from_user.id
-            has_appeal = check_user_active_appeal(user_id, status="в ожидании")
+            has_appeal = check_user_active_appeal(user_id, status="В обработке")
             logger.info(f"Пользователь {user_id} имеет активные обращения: {has_appeal}")
             return has_appeal
         except Exception as e:
