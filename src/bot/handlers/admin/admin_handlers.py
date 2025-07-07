@@ -18,42 +18,50 @@ close_timers = {}
 AUTO_CLOSE_DELAY = 20  # секунды
 
 
-async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int):
+async def close_appeal_timeout(appeal_id: int, user_id: int, operator_id: int):
     """
     Задача, которая автоматически закрывает обращение после истечения времени
 
     :param appeal_id: ID обращения
     :param user_id: ID пользователя
-    :param manager_id: ID оператора
+    :param operator_id: ID оператора
     """
     try:
+        logger.info(f"Запущен таймер для обращения #{appeal_id} (оператор: {operator_id}, пользователь: {user_id})")
         await asyncio.sleep(AUTO_CLOSE_DELAY)
 
-        # Проверяем, не был ли таймер отменён ранее
-        if close_timers.get(appeal_id) is not asyncio.current_task():
+        appeal = get_appeal(appeal_id=appeal_id)
+        logger.info(f"Обращение для обращения #{appeal_id}: {appeal}")
+        if not appeal or appeal.get("status") != "В обработке":
+            logger.info(f"Таймер для обращения #{appeal_id} остановлен — статус: {appeal.get('status') if appeal else 'не найдено'}")
             return
 
-        appeal = get_appeal(id=appeal_id)
-        if not appeal or appeal.get("status_id") != 2:
-            logger.info(f"Таймер для обращения {appeal_id} остановлен — статус изменён")
+        last_msg = appeal.get("last_message_at")
+        if not last_msg:
+            logger.warning(f"Время последнего сообщения для обращения #{appeal_id} отсутствует")
             return
 
-        last_msg_str = appeal.get("last_message_at")
-        if not last_msg_str:
-            return
-
-        # Проверяем тип даты
-        if isinstance(last_msg_str, str):
-            last_msg_dt = datetime.strptime(last_msg_str, "%d.%m.%Y %H:%M:%S")
+        # Проверяем тип last_message_at
+        if isinstance(last_msg, str):
+            try:
+                last_msg_dt = datetime.strptime(last_msg, "%d.%m.%Y %H:%M:%S")
+            except ValueError as e:
+                logger.error(f"Ошибка парсинга last_message_at для обращения #{appeal_id}: {last_msg}, ошибка: {e}")
+                return
         else:
-            last_msg_dt = last_msg_str  # Если это datetime объект
+            last_msg_dt = last_msg  # Предполагаем, что это datetime объект
 
         elapsed = (datetime.now() - last_msg_dt).total_seconds()
+        logger.info(f"Прошло времени с последнего сообщения для обращения #{appeal_id}: {elapsed} секунд")
 
         if elapsed >= AUTO_CLOSE_DELAY:
-            update_appeal(appeal_id=appeal_id, status="Закрыто", operator_id=manager_id, last_message_at=datetime.now())
+            update_appeal(
+                appeal_id=appeal_id,
+                status="Закрыто",
+                operator_id=operator_id,
+                last_message_at=datetime.now()
+            )
             lang = get_user_lang(user_id)
-
             await bot.send_message(
                 user_id,
                 (
@@ -64,18 +72,18 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int):
                 reply_markup=set_rating(appeal_id),
             )
             await bot.send_message(
-                manager_id,
+                operator_id,
                 f"<b>✅ Обращение закрыто</b>. Вы свободны для принятия новых заявок 👻",
             )
             logger.info(f"Автоматическое закрытие заявки #{appeal_id} по таймауту")
+        else:
+            logger.info(f"Обращение #{appeal_id} не закрыто: прошло {elapsed} секунд, требуется {AUTO_CLOSE_DELAY} секунд")
 
     except asyncio.CancelledError:
-        logger.info(f"Таймер для обращения {appeal_id} был отменен.")
+        logger.info(f"Таймер для обращения #{appeal_id} был отменён.")
         raise
     except Exception as e:
-        logger.exception(
-            f"Ошибка при автоматическом закрытии обращения {appeal_id}: {e}"
-        )
+        logger.exception(f"Ошибка при автоматическом закрытии обращения #{appeal_id}: {e}")
     finally:
         close_timers.pop(appeal_id, None)
 
@@ -145,41 +153,54 @@ async def client_answer_appeal(message: Message):
         logger.info(f"Ответ от клиента - {message.from_user.id}")
         # Получаем данные из базы данных к оператору
         appeal = get_appeal(user_id=message.from_user.id)
-        logger.info(appeal)
+        logger.info(f"Обращение: {appeal}")
         if not appeal:  # Если обращение не найдено
+            logger.warning(f"Обращение для пользователя {message.from_user.id} не найдено")
             return  # Выходим из функции
-        # Получаем ID пользователя, который отправил сообщение в бота
+        # Получаем ID оператора из обращения
+        operator_id = appeal["operator_id"]
         await bot.send_message(
-            appeal["operator_id"],
+            operator_id,
             f"🧑‍💻 Клиент:\n{message.text}"
         )
-
         # Обновляем время последнего сообщения
         update_appeal(
             appeal_id=appeal["id"],  # id обращения
             status="В обработке",  # статус
-            operator_id=appeal["operator_id"],  # id оператора
+            operator_id=operator_id,  # id оператора
             last_message_at=datetime.now()  # время последнего сообщения
         )
+        logger.info(f"Обновлено время последнего сообщения для обращения #{appeal['id']}")
         # Перезапускаем таймер
-        await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
+        await start_timer(appeal["id"], appeal["user_id"], operator_id)
+        logger.info(f"Таймер запущен для обращения #{appeal['id']} с оператором {operator_id}")
     except Exception as e:
         logger.exception(e)
 
 
-async def start_timer(appeal_id: int, user_id: int, manager_id: int):
+async def start_timer(appeal_id: int, user_id: int, operator_id: int):
     """Запуск нового таймера автоматического закрытия"""
-    if appeal_id in close_timers:
-        close_timers[appeal_id].cancel()
-    task = asyncio.create_task(close_appeal_timeout(appeal_id, user_id, manager_id))
+    # Отменяем существующий таймер, если он есть
+    await del_close_timer(appeal_id)
+    # Создаём новый таймер
+    task = asyncio.create_task(close_appeal_timeout(appeal_id, user_id, operator_id))
     close_timers[appeal_id] = task
+    logger.info(f"Новый таймер создан для обращения #{appeal_id}")
 
 
 async def del_close_timer(appeal_id: int):
     """Удаление и отмена таймера"""
-    task = close_timers.pop(appeal_id, None)
+    task = close_timers.get(appeal_id)
     if task:
-        task.cancel()
+        try:
+            task.cancel()
+            # Ждём завершения отмены задачи
+            await asyncio.sleep(0)  # Даём шанс задаче обработать отмену
+            logger.info(f"Таймер для обращения #{appeal_id} успешно отменён")
+        except asyncio.CancelledError:
+            logger.info(f"Таймер для обращения #{appeal_id} был в процессе отмены")
+        finally:
+            close_timers.pop(appeal_id, None)
 
 
 @router.message(Command(commands=["admin"]), AdminFilter())

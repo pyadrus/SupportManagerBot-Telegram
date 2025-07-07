@@ -194,21 +194,24 @@ def get_appeals(appeal_id):
         logger.exception(f"Ошибка получения обращения: {e}")
         return {}
 
-def get_appeal(user_id=None, operator_id=None, status="В обработке"):
-    """Получает активное обращение по user_id или operator_id"""
+def get_appeal(appeal_id=None, user_id=None, operator_id=None, status="В обработке"):
+    """Получает активное обращение по appeal_id, user_id или operator_id"""
     try:
         with db:
             query = Appeal.select().where(Appeal.status == status)
-            if user_id:
+            if appeal_id:
+                query = query.where(Appeal.id == appeal_id)
+            elif user_id:
                 query = query.where(Appeal.user_id == str(user_id))
             elif operator_id:
                 query = query.where(Appeal.operator_id == str(operator_id))
 
             appeal = query.first()
             if not appeal:
+                logger.warning(f"Обращение не найдено: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, status={status}")
                 return None
 
-            return {
+            result = {
                 "id": appeal.id,
                 "user_id": appeal.user_id,
                 "operator_id": appeal.operator_id,
@@ -219,8 +222,10 @@ def get_appeal(user_id=None, operator_id=None, status="В обработке"):
                 "full_name": appeal.full_name,
                 "phone": appeal.phone,
             }
+            logger.info(f"Найдено обращение: {result}")
+            return result
     except Exception as e:
-        logger.exception(f"Ошибка получения обращения: {e}")
+        logger.exception(f"Ошибка получения обращения: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, error={e}")
         return None
 
 
