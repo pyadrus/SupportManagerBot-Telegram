@@ -11,10 +11,8 @@ from src.bot.keyboards.user_keyboards import (consent_or_edit_my_appeal,
                                               edit_my_appeal, manage_appeal)
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import (check_user_active_appeal,
-                                        create_appeal, db,
-                                        get_operator_ids_by_status,
-                                        get_user_lang)
+from src.core.database.database import (check_user_active_appeal, create_appeal, get_operator_ids_by_status,
+                                        get_user_lang, db, update_rating)
 
 
 @router.callback_query(F.data == "call_manager")
@@ -30,7 +28,7 @@ async def start_create_appeal(callback_query: CallbackQuery, state: FSMContext):
         logger.info(f"Существует активная привлекательность: {is_active}")
 
         if is_active:
-        # if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
+            # if check_user_active_appeal(user_id):  # Проверяем, активно ли обращение с оператором
             await callback_query.message.answer(
                 "💬 Шумо аллакай дар муколамаи фаъол ҳастед"
                 if lang == "tj"
@@ -111,9 +109,7 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
     """Обрабатывает согласие пользователя на создание обращения и отправляет его в группу"""
     try:
         logger.info(f"Создано обращение {callback_query.from_user.id}")
-        lang = get_user_lang(
-            id_user=callback_query.from_user.id
-        )  # Получаем язык пользователя
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
         logger.info(f"Язык пользователя {callback_query.from_user.id}: {lang}")
         await callback_query.message.edit_text(
             "✅ <b>Дархости шумо қабул шуд!</b> Мунтазир бошед, мутахассиси мо ба зудӣ бо шумо тамос мегирад. Мо кор мекунем, дар ҳоле ки шаҳр хоб аст... 🌙"
@@ -163,7 +159,7 @@ async def consent_appeal(callback_query: CallbackQuery, state: FSMContext):
 async def start_edit_appeal(callback_query: CallbackQuery, state: FSMContext):
     try:
         logger.info(f"Изменение обращения {callback_query.from_user.id}")
-        lang = await db.get_user_lang(callback_query.message.chat.id)
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
         await callback_query.message.delete_reply_markup()
         await callback_query.message.answer(
             (
@@ -188,7 +184,7 @@ async def edit_type_appeal(callback_query: CallbackQuery, state: FSMContext):
         edit_type = callback_query.data.split("-")[1]
         logger.info(f"Изменение {edit_type} обращения {callback_query.from_user.id}")
         await state.update_data(edit_type=edit_type)
-        lang = await db.get_user_lang(callback_query.message.chat.id)
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
         if edit_type == "fio":
             await callback_query.message.edit_text(
                 "📛 Лутфан номи пурраи навро ворид кунед"
@@ -221,7 +217,7 @@ async def edit_appeal(message: Message, state: FSMContext):
         data = await state.get_data()
         await state.update_data(**{data["edit_type"]: message.text})
         data = await state.get_data()
-        lang = await db.get_user_lang(message.chat.id)
+        lang = get_user_lang(id_user=message.from_user.id)  # Получаем язык пользователя
         if lang == "tj":
             text = f"""📋 Маълумот нав карда шуд, аризаро тафтиш кунед:\n
 <b>👤 ФИО</b>: {data['fio']}
@@ -242,12 +238,17 @@ async def edit_appeal(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("set_rating-"))
 async def set_rating(callback_query: CallbackQuery):
     try:
-        lang = await db.get_user_lang(callback_query.from_user.id)
+        lang = get_user_lang(id_user=callback_query.from_user.id)  # Получаем язык пользователя
         await callback_query.message.edit_text(
             "Ташаккур :)" if lang == "tj" else "Благодарим :)"
         )
         data = callback_query.data.split("-")
-        await db.update_appeal_data(data[1], rating=data[2])
+        logger.info(f"Данные для заполнения: {data}")
+
+        # await db.update_appeal_data(data[1], rating=data[2])
+        # Обновляем рейтинг обращения
+        update_rating(appeal_id=data[1], rating=data[2])
+
         logger.info(f"Установлен рейтинг для обращения {data[1]} - {data[2]}")
     except Exception as e:
         logger.exception(f"Ошибка установки рейтинга: {e} - {callback_query.from_user.id}")

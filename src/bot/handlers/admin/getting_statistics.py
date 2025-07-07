@@ -7,9 +7,7 @@ from loguru import logger
 
 from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.user_keyboards import stat_period
-from src.bot.middlewares.middlewares import (
-    AdminFilter,
-)
+from src.bot.middlewares.middlewares import AdminFilter
 from src.bot.system.dispatcher import bot, router
 
 

@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from aiogram import F
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from loguru import logger
 
 from src.bot.keyboards.admin_keyboards import admin_keyboard
-from src.bot.keyboards.user_keyboards import set_rating, stat_period
-from src.bot.middlewares.middlewares import (AdminFilter, ManagerAppealsFilter,
-                                             UserAppealsFilter)
+from src.bot.keyboards.user_keyboards import set_rating
+from src.bot.middlewares.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import get_appeal, get_user_lang, update_appeal
 
@@ -20,7 +19,13 @@ AUTO_CLOSE_DELAY = 20  # секунды
 
 
 async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int):
-    """Задача, которая автоматически закрывает обращение после истечения времени"""
+    """
+    Задача, которая автоматически закрывает обращение после истечения времени
+
+    :param appeal_id: ID обращения
+    :param user_id: ID пользователя
+    :param manager_id: ID оператора
+    """
     try:
         await asyncio.sleep(AUTO_CLOSE_DELAY)
 
@@ -46,7 +51,7 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, manager_id: int):
         elapsed = (datetime.now() - last_msg_dt).total_seconds()
 
         if elapsed >= AUTO_CLOSE_DELAY:
-            update_appeal(appeal_id, status_id=3)
+            update_appeal(appeal_id=appeal_id, status="Закрыто", operator_id=manager_id, last_message_at=datetime.now())
             lang = get_user_lang(user_id)
 
             await bot.send_message(
@@ -85,9 +90,7 @@ async def close_appeal_by_manager(message: Message):
             await message.answer("Заявка не найдена")
             return
         await del_close_timer(appeal["id"])
-        update_appeal(
-            appeal_id=appeal["id"], status="Закрыто", operator_id=message.from_user.id
-        )
+        update_appeal(appeal_id=appeal["id"], status="Закрыто", operator_id=message.from_user.id, last_message_at=datetime.now())
         lang_client = get_user_lang(appeal["user_id"])
         await bot.send_message(
             appeal["user_id"],
@@ -119,8 +122,15 @@ async def manager_answer_appeal(message: Message):
             return  # Выходим из функции
         # Получаем ID пользователя, который отправил сообщение в бота
         await bot.send_message(appeal["user_id"], message.text)
+
         # Обновляем время последнего сообщения
-        update_appeal(appeal["id"], last_message_at=datetime.now())
+        update_appeal(
+            appeal_id=appeal["id"],  # id обращения
+            status="В обработке",  # статус
+            operator_id=message.from_user.id,  # id оператора
+            last_message_at=datetime.now()  # время последнего сообщения
+        )
+
         # Перезапускаем таймер
         await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
     except Exception as e:

@@ -129,15 +129,31 @@ def set_user_lang(id_user: int, lang: str):
 """Обновление обращения на статус В обработке"""
 
 
-def update_appeal(appeal_id: int, status: str, operator_id: int):
-    """Обновляет обращение"""
+def update_appeal(appeal_id: int, status: str, operator_id: int, last_message_at):
+    """
+    Обновляет обращение
+
+    :param appeal_id: ID обращения
+    :param status: Новый статус обращения
+    :param operator_id: ID оператора
+    :param last_message_at: Время последнего сообщения
+    """
     try:
         with db:
-            Appeal.update({Appeal.status: status, Appeal.operator_id: operator_id}).where(Appeal.id == appeal_id).execute()
+            Appeal.update({Appeal.status: status, Appeal.operator_id: operator_id, Appeal.last_message_at: last_message_at}).where(Appeal.id == appeal_id).execute()
             # update_appeal.execute()
     except Exception as e:
         logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
 
+
+"""Обновление рейтинга обращения"""
+def update_rating(appeal_id, rating):
+    """Обновляет рейтинг обращения"""
+    try:
+        with db:
+            Appeal.update({Appeal.rating: rating}).where(Appeal.id == appeal_id).execute()
+    except Exception as e:
+        logger.exception(e)
 
 """Получение языка пользователя"""
 

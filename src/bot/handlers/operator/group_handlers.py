@@ -10,9 +10,8 @@ from loguru import logger
 
 from src.bot.keyboards.user_keyboards import close_appeal
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import (Appeal, check_manager_active_appeal,
-                                        db, get_appeals,
-                                        get_user_lang, update_appeal)
+from src.core.database.database import Appeal, check_manager_active_appeal, db, get_appeals, get_user_lang, \
+    update_appeal
 
 
 @router.callback_query(F.data == "accept_appeal")
@@ -67,7 +66,8 @@ async def accept_appeal(callback_query: CallbackQuery, state: FSMContext):
                         else "🤝 <b>Специалист подключился к вашему запросу.</b> Можете начать общение ✨"
                     ),
                 )
-                update_appeal(appeal_id=appeal_id, status="В обработке", operator_id=user_id)
+                update_appeal(appeal_id=appeal_id, status="В обработке", operator_id=user_id,
+                              last_message_at=datetime.now())
             else:
                 await callback_query.message.edit_text("В обращении не найден id")
     except Exception as e:
