@@ -4,11 +4,7 @@ from aiogram.types import Message
 from loguru import logger
 
 from src.core.config.config import ADMIN
-from src.core.database.database import (
-    get_user_status,
-    check_manager_active_appeal,
-    check_user_active_appeal,
-)
+from src.core.database.database import check_manager_active_appeal, check_user_active_appeal
 
 
 class AdminFilter(Filter):

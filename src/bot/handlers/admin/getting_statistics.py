@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
-import asyncio
 from datetime import datetime, timedelta
 
 from aiogram import F
-from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery
 from loguru import logger
 
 from src.bot.keyboards.admin_keyboards import admin_keyboard
-from src.bot.keyboards.user_keyboards import set_rating, stat_period
+from src.bot.keyboards.user_keyboards import stat_period
 from src.bot.middlewares.middlewares import (
     AdminFilter,
-    ManagerAppealsFilter,
-    UserAppealsFilter,
 )
 from src.bot.system.dispatcher import bot, router
-from src.core.database.database import get_appeal, get_user_lang, update_appeal
 
 
 @router.callback_query(F.data == "statistic", AdminFilter())

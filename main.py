@@ -15,6 +15,7 @@ commands = [
     [sys.executable, "src/bot/bot.py"],  # запускает бота
     ["tuna", "http", "8080", "--subdomain=support-operator-bot", ],  # запускает сервер на порту 8080
 ]
+
 # Установить PYTHONPATH на корень проекта
 env = os.environ.copy()
 env["PYTHONPATH"] = project_root

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 
 def choose_lang() -> InlineKeyboardMarkup:
