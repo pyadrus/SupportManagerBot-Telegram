@@ -130,7 +130,10 @@ async def manager_answer_appeal(message: Message):
         if not appeal:  # Если обращение не найдено
             return  # Выходим из функции
         # Получаем ID пользователя, который отправил сообщение в бота
-        await bot.send_message(appeal["user_id"], message.text)
+        await bot.send_message(
+            appeal["user_id"],
+            f"🧑‍💻 Оператор:\n{message.text}"
+        )
 
         # Обновляем время последнего сообщения
         update_appeal(
