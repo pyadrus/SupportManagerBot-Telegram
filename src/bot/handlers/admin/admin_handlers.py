@@ -33,7 +33,8 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, operator_id: int):
         appeal = get_appeal(appeal_id=appeal_id)
         logger.info(f"Обращение для обращения #{appeal_id}: {appeal}")
         if not appeal or appeal.get("status") != "В обработке":
-            logger.info(f"Таймер для обращения #{appeal_id} остановлен — статус: {appeal.get('status') if appeal else 'не найдено'}")
+            logger.info(
+                f"Таймер для обращения #{appeal_id} остановлен — статус: {appeal.get('status') if appeal else 'не найдено'}")
             return
 
         last_msg = appeal.get("last_message_at")
@@ -77,7 +78,8 @@ async def close_appeal_timeout(appeal_id: int, user_id: int, operator_id: int):
             )
             logger.info(f"Автоматическое закрытие заявки #{appeal_id} по таймауту")
         else:
-            logger.info(f"Обращение #{appeal_id} не закрыто: прошло {elapsed} секунд, требуется {AUTO_CLOSE_DELAY} секунд")
+            logger.info(
+                f"Обращение #{appeal_id} не закрыто: прошло {elapsed} секунд, требуется {AUTO_CLOSE_DELAY} секунд")
 
     except asyncio.CancelledError:
         logger.info(f"Таймер для обращения #{appeal_id} был отменён.")

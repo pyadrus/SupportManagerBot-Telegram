@@ -12,7 +12,7 @@ from src.bot.keyboards.user_keyboards import (consent_or_edit_my_appeal,
 from src.bot.states.states import StartAppealStates
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (check_user_active_appeal, create_appeal, get_operator_ids_by_status,
-                                        get_user_lang, db, update_rating)
+                                        get_user_lang, update_rating)
 
 
 @router.callback_query(F.data == "call_manager")
