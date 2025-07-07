@@ -20,7 +20,6 @@ def create_tables(name_db, appeal_id):
         operator_id = CharField(null=True)  # Кто обрабатывает (ID Telegram оператора)
         message_text = CharField(null=True)  # Текст сообщения
         last_message_at = DateTimeField(default=datetime.now)  # Время последнего сообщения
-        status = CharField(null=True)  # Статус
 
         class Meta:
             database = db
@@ -31,14 +30,13 @@ def create_tables(name_db, appeal_id):
     return Dialogues  # Возвращаем класс
 
 
-def write_to_db(appeal_id, operator_id, user_id, message_text, status, name_db):
+def write_to_db(appeal_id, operator_id, user_id, message_text, name_db):
     """Запись в базу данных
 
     :param appeal_id: ID обращения
     :param user_id: ID пользователя
     :param operator_id: ID оператора
     :param message_text: Текст сообщения
-    :param status: Статус
     :param name_db: Имя базы данных
     """
 
@@ -48,6 +46,5 @@ def write_to_db(appeal_id, operator_id, user_id, message_text, status, name_db):
         user_id=user_id,  # ID пользователя
         operator_id=operator_id,  # ID оператора
         message_text=message_text,  # Текст сообщения
-        status=status,  # Статус
         last_message_at=datetime.now()  # Время последнего сообщения
     )

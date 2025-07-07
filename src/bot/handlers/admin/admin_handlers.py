@@ -149,10 +149,10 @@ async def manager_answer_appeal(message: Message):
         # Записываем сообщение в базу данных
         write_to_db(
             appeal_id=appeal["id"],  # id обращения
-            operator_id=appeal["operator_id"],  # id оператора (Если оператор не указан, значит это сообщение от клиента)
+            operator_id=appeal["operator_id"],
+            # id оператора (Если оператор не указан, значит это сообщение от клиента)
             user_id=None,  # id пользователя
             message_text=message.text,  # текст сообщения
-            status="В обработке",  # статус
             name_db=appeal["operator_id"],  # имя базы данных
         )
 
@@ -193,7 +193,6 @@ async def client_answer_appeal(message: Message):
             operator_id=None,  # id оператора (Если оператор не указан, значит это сообщение от клиента)
             user_id=appeal["user_id"],  # id пользователя
             message_text=message.text,  # текст сообщения
-            status="В обработке",  # статус
             name_db=appeal["operator_id"],  # имя базы данных
         )
 
@@ -244,9 +243,8 @@ async def admin(message: Message):
 
 def register_handlers_admin():
     # --- Callback handlers ---
-    router.callback_query.register(
-        close_appeal_by_manager, F.data == "close_appeal_by_manager"
-    )  # Если есть такая кнопка
+    router.callback_query.register(close_appeal_by_manager,
+                                   F.data == "close_appeal_by_manager")  # Если есть такая кнопка
     router.callback_query.register(set_rating, F.data.startswith("set_rating-"))
 
     # --- Message handlers (текстовые сообщения) ---
