@@ -54,9 +54,6 @@ def create_appeal(user_id, operator_id, status, rating, last_message_at, user_qu
     return appeal.id  # <-- ID из базы данных
 
 
-
-
-
 def register_user(user_data) -> None:
     """
     Записывает данные пользователя в базу данных, который вызвал команду /start.
@@ -101,6 +98,7 @@ def check_manager_active_appeal(operator_id: int) -> bool:
         logger.exception(f"Ошибка проверки активных обращений менеджера {operator_id}: {e}")
         return False
 
+
 def check_user_active_appeal(user_id, status) -> bool:
     """
     Проверяет, есть ли у пользователя активное обращение
@@ -116,6 +114,7 @@ def check_user_active_appeal(user_id, status) -> bool:
         ).count()
 
         return count > 0  # Если больше нуля, то возвращаем True, иначе False
+
 
 """Установка языка пользователя"""
 
@@ -141,13 +140,16 @@ def update_appeal(appeal_id: int, status: str, operator_id: int, last_message_at
     """
     try:
         with db:
-            Appeal.update({Appeal.status: status, Appeal.operator_id: operator_id, Appeal.last_message_at: last_message_at}).where(Appeal.id == appeal_id).execute()
+            Appeal.update({Appeal.status: status, Appeal.operator_id: operator_id,
+                           Appeal.last_message_at: last_message_at}).where(Appeal.id == appeal_id).execute()
             # update_appeal.execute()
     except Exception as e:
         logger.exception(f"Ошибка обновления обращения {appeal_id}: {e}")
 
 
 """Обновление рейтинга обращения"""
+
+
 def update_rating(appeal_id, rating):
     """Обновляет рейтинг обращения"""
     try:
@@ -155,6 +157,7 @@ def update_rating(appeal_id, rating):
             Appeal.update({Appeal.rating: rating}).where(Appeal.id == appeal_id).execute()
     except Exception as e:
         logger.exception(e)
+
 
 """Получение языка пользователя"""
 
@@ -164,6 +167,7 @@ def get_user_lang(id_user: int) -> str | None:
     with db:
         user = Person.get_or_none(Person.id_user == id_user)
         return user.lang if user else None
+
 
 def get_appeals(appeal_id):
     """Получает обращение по ID.
@@ -194,6 +198,7 @@ def get_appeals(appeal_id):
         logger.exception(f"Ошибка получения обращения: {e}")
         return {}
 
+
 def get_appeal(appeal_id=None, user_id=None, operator_id=None, status="В обработке"):
     """Получает активное обращение по appeal_id, user_id или operator_id"""
     try:
@@ -208,7 +213,8 @@ def get_appeal(appeal_id=None, user_id=None, operator_id=None, status="В обр
 
             appeal = query.first()
             if not appeal:
-                logger.warning(f"Обращение не найдено: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, status={status}")
+                logger.warning(
+                    f"Обращение не найдено: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, status={status}")
                 return None
 
             result = {
@@ -225,7 +231,8 @@ def get_appeal(appeal_id=None, user_id=None, operator_id=None, status="В обр
             logger.info(f"Найдено обращение: {result}")
             return result
     except Exception as e:
-        logger.exception(f"Ошибка получения обращения: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, error={e}")
+        logger.exception(
+            f"Ошибка получения обращения: appeal_id={appeal_id}, user_id={user_id}, operator_id={operator_id}, error={e}")
         return None
 
 

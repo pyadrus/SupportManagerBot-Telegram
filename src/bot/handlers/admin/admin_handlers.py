@@ -12,6 +12,7 @@ from src.bot.keyboards.user_keyboards import set_rating
 from src.bot.middlewares.middlewares import AdminFilter, ManagerAppealsFilter, UserAppealsFilter
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import get_appeal, get_user_lang, update_appeal
+from src.core.database.dialogues import write_to_db
 
 close_timers = {}
 # Константа для времени ожидания (например, 5 минут)
@@ -145,6 +146,16 @@ async def manager_answer_appeal(message: Message):
             last_message_at=datetime.now()  # время последнего сообщения
         )
 
+        # Записываем сообщение в базу данных
+        write_to_db(
+            appeal_id=appeal["id"],  # id обращения
+            operator_id=appeal["operator_id"],  # id оператора (Если оператор не указан, значит это сообщение от клиента)
+            user_id=None,  # id пользователя
+            message_text=message.text,  # текст сообщения
+            status="В обработке",  # статус
+            name_db=appeal["operator_id"],  # имя базы данных
+        )
+
         # Перезапускаем таймер
         await start_timer(appeal["id"], appeal["user_id"], message.from_user.id)
     except Exception as e:
@@ -176,6 +187,16 @@ async def client_answer_appeal(message: Message):
             last_message_at=datetime.now()  # время последнего сообщения
         )
         logger.info(f"Обновлено время последнего сообщения для обращения #{appeal['id']}")
+        # Записываем сообщение в базу данных
+        write_to_db(
+            appeal_id=appeal["id"],  # id обращения
+            operator_id=None,  # id оператора (Если оператор не указан, значит это сообщение от клиента)
+            user_id=appeal["user_id"],  # id пользователя
+            message_text=message.text,  # текст сообщения
+            status="В обработке",  # статус
+            name_db=appeal["operator_id"],  # имя базы данных
+        )
+
         # Перезапускаем таймер
         await start_timer(appeal["id"], appeal["user_id"], operator_id)
         logger.info(f"Таймер запущен для обращения #{appeal['id']} с оператором {operator_id}")
