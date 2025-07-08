@@ -18,6 +18,3 @@ def get_operator_db(id_user):
         return data.username, data.password
 
 
-
-def get_operator_dialog(id_user):
-    """получаем список диалогов оператора"""

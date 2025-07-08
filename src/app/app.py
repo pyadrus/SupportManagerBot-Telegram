@@ -12,8 +12,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 # тут ты можешь искать в базе данных, например:
-from src.core.database.database import Person  # адаптируй под свою структуру
 from src.core.database.database import get_all_authorization_data, get_appeal
+from src.core.database.dialogues import get_operator_dialog
 
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
@@ -42,16 +42,14 @@ class UserID(BaseModel):
 
 @app.post("/api/set_user_id")
 async def set_user_id(data: UserID):
+    """Получение сообщений из базы данных"""
     user_id = data.user_id
     logger.debug(f"Пользователь зашел с ID: {user_id}")
-    appeal = get_appeal(operator_id=user_id)
-    logger.debug(appeal)
 
-    user = Person.get_or_none(Person.id_user == user_id)
-    if user:
-        return {"status": "ok", "message": "Пользователь найден", "username": user.username}
-    else:
-        return {"status": "not_found", "message": "Пользователь не найден"}
+    appeal = get_appeal(operator_id=user_id)
+    dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
+    for message in dialogs:
+        logger.debug(message)
 
 
 # === Страница администратора ===
