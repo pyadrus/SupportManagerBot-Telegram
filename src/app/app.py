@@ -9,8 +9,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+from pydantic import BaseModel
 
-from src.core.database.database import get_all_authorization_data
+# тут ты можешь искать в базе данных, например:
+from src.core.database.database import Person  # адаптируй под свою структуру
+from src.core.database.database import get_all_authorization_data, get_appeal
 
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,10 +30,28 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/operator", response_class=HTMLResponse)
 async def operator_page(request: Request):
-
     return templates.TemplateResponse("operator.html", {
         "request": request,
     })
+
+
+# Модель запроса
+class UserID(BaseModel):
+    user_id: int
+
+
+@app.post("/api/set_user_id")
+async def set_user_id(data: UserID):
+    user_id = data.user_id
+    logger.debug(f"Пользователь зашел с ID: {user_id}")
+    appeal = get_appeal(operator_id=user_id)
+    logger.debug(appeal)
+
+    user = Person.get_or_none(Person.id_user == user_id)
+    if user:
+        return {"status": "ok", "message": "Пользователь найден", "username": user.username}
+    else:
+        return {"status": "not_found", "message": "Пользователь не найден"}
 
 
 # === Страница администратора ===
