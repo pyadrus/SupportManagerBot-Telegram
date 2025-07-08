@@ -333,13 +333,3 @@ def get_operator_ids_by_status(status: str):
     with db:
         operators = Person.select().where(Person.status == status)
         return [operator.id_user for operator in operators]
-
-# def get_status_name(status_id: int) -> str:
-# """Получает название статуса по его ID"""
-# try:
-# with db:
-# status = Status.select().where(Status.id == status_id).get_or_none()
-# return status.status if status else ""
-# except Exception as e:
-# logger.error(f"Ошибка получения названия статуса {status_id}: {e}")
-# return ""

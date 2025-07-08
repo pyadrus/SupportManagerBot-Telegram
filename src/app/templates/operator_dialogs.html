@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель оператора</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+        /* --- Глобальные стили и новый шрифт --- */
+        :root {
+            --primary-color: #4f46e5;
+            /* Индиго */
+            --primary-hover: #4338ca;
+            --operator-msg-bg: var(--primary-color);
+            --user-msg-bg: #e2e8f0;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+            --font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--text-color);
+        }
+
+        /* --- Главный контейнер чата --- */
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* --- Заголовок чата --- */
+        .chat-header {
+            padding: 15px 25px;
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--primary-color);
+        }
+
+        .requests-icon {
+            position: relative;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.3s;
+        }
+
+        .requests-icon:hover {
+            color: var(--primary-color);
+        }
+
+        .requests-count {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            padding: 1px 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid var(--white);
+        }
+
+        .logout-btn {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--danger-color);
+            color: var(--white);
+        }
+
+        /* --- Окно с сообщениями --- */
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 75%;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: var(--text-color);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .operator-message {
+            background-color: var(--operator-msg-bg);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message p {
+            margin: 0 0 5px 0;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #94a3b8;
+            align-self: flex-end;
+        }
+
+        .operator-message .timestamp {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* --- Подвал с полем ввода --- */
+        .chat-footer {
+            display: flex;
+            padding: 15px 25px;
+            border-top: 1px solid var(--border-color);
+            background: var(--white);
+            gap: 10px;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            font-family: var(--font-family);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        #message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        #send-button {
+            padding: 12px 25px;
+            border: none;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        #send-button:hover {
+            background-color: var(--success-hover);
+            transform: scale(1.05);
+        }
+
+        /* --- Стили модальных окон --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.5);
+            /* полупрозрачный темный фон */
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 10% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 650px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        .back-button {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .requests-list {
+            padding: 20px 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .request-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+            border-color: var(--primary-color);
+        }
+
+        .request-details p {
+            margin: 4px 0;
+            line-height: 1.6;
+        }
+
+        .request-details p:last-child {
+            margin-bottom: 0;
+        }
+
+        .request-details strong {
+            color: var(--text-color);
+        }
+
+        .accept-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .accept-btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+        }
+    </style>
+
+
+</head>
+
+<body>
+<div class="chat-container">
+    <header class="chat-header">
+        <div class="header-content">
+            <h1>eHukumat</h1>
+            <div id="requests-icon" class="requests-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                <span class="requests-count">3</span>
+            </div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Выход</button>
+    </header>
+    <div class="chat-box" id="chat-box">
+        <div class="message user-message">
+            <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
+            <span class="timestamp">14:25</span>
+        </div>
+        <div class="message operator-message">
+            <p>Добрый день! Слушаю вас.</p>
+            <span class="timestamp">14:26</span>
+        </div>
+    </div>
+    <footer class="chat-footer">
+        <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
+        <button id="send-button">Отправить</button>
+    </footer>
+</div>
+
+<div id="requests-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Заявки в ожидании</h2>
+            <button class="back-button">&larr; Назад</button>
+        </div>
+        <div class="requests-list">
+            <div class="request-item">
+                <div class="request-details">
+                    <p><strong>Номер заявки:</strong> #1024</p>
+                    <p><strong>ФИО:</strong> Иванов Иван Иванович</p>
+                    <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
+                    <p><strong>Вопрос:</strong> Не могу отследить свой заказ.</p>
+                    <p><strong>Время:</strong> 14:30 18.06.2025</p>
+                </div>
+                <button class="accept-btn">Принять</button>
+            </div>
+            <div class="request-item">
+                <div class="request-details">
+                    <p><strong>Номер заявки:</strong> #1025</p>
+                    <p><strong>ФИО:</strong> Петрова Мария Сергеевна</p>
+                    <p><strong>Телефон:</strong> +7 (926) 765-43-21</p>
+                    <p><strong>Вопрос:</strong> Как вернуть товар?</p>
+                    <p><strong>Время:</strong> 14:32 18.06.2025</p>
+                </div>
+                <button class="accept-btn">Принять</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/src/apprator.script.js"></script>
+</body>
+
+</html>

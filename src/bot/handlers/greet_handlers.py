@@ -10,6 +10,7 @@ from src.bot.keyboards.user_keyboards import choose_lang, start
 from src.bot.system.dispatcher import bot, router
 from src.core.database.database import (get_user_status, register_user,
                                         set_user_lang)
+from src.core.database.operator_db import get_operator_db
 
 
 @router.message(CommandStart())
@@ -50,8 +51,9 @@ async def cmd_start(message: Message):
 
         if status == 'operator':  # Проверяем статус пользователя
             logger.info(f"Пользователь {message.from_user.id} оператор")
+            username, password = get_operator_db(message.from_user.id)
             await message.answer(
-                f"Здравствуйте, {message.from_user.first_name}! Вы попали в панель оператора",
+                f"Здравствуйте, {message.from_user.first_name}!\n\nВы попали в панель оператора.\nВаш логин: <code>{username}</code>.\nВаш пароль: <code>{password}</code>",
                 reply_markup=operator_keyboard()
             )
             return

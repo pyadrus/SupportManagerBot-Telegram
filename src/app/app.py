@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional
-
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 from fastapi import FastAPI
 from fastapi import Form
@@ -17,6 +17,8 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
+# Подключаем статику (стили, скрипты)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Путь к шаблонам
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
