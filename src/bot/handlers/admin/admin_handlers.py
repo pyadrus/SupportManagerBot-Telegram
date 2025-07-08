@@ -16,7 +16,7 @@ from src.core.database.dialogues import write_to_db
 
 close_timers = {}
 # Константа для времени ожидания (например, 5 минут)
-AUTO_CLOSE_DELAY = 20  # секунды
+AUTO_CLOSE_DELAY = 60  # секунды
 
 
 async def close_appeal_timeout(appeal_id: int, user_id: int, operator_id: int):

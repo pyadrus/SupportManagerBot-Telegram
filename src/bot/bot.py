@@ -4,8 +4,8 @@ import logging
 
 from loguru import logger
 
-from src.bot.handlers.admin.getting_statistics import register_handlers_getting_statistics
 from src.bot.handlers.admin.admin_handlers import register_handlers_admin
+from src.bot.handlers.admin.getting_statistics import register_handlers_getting_statistics
 from src.bot.handlers.admin.granting_rights import register_granting_rights_handlers
 from src.bot.handlers.greet_handlers import register_commands
 from src.bot.handlers.operator.group_handlers import register_manager_handlers_group
