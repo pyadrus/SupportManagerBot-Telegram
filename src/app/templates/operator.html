@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
@@ -14,8 +15,10 @@
     <header class="chat-header">
         <div class="header-content">
             <h1>eHukumat</h1>
+            <div id="usercard"></div>
         </div>
     </header>
+
     <div class="chat-box" id="chat-box">
         <div class="message user-message">
             <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
@@ -32,5 +35,44 @@
         <button id="send-button">Отправить</button>
     </footer>
 </div>
+
+<script>
+    //кнопка назад
+    const tg = window.Telegram.WebApp;
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+        tg.expand(); // Убедимся, что expand() сработает
+        setTimeout(() => {
+            window.history.back();
+        }, 0);
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        // --- МОДИФИЦИРОВАННЫЙ БЛОК ---
+        let user;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            // Мы в Telegram, используем реальные данные
+            user = tg.initDataUnsafe.user;
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+                tg.expand();
+                setTimeout(() => window.history.back(), 0);
+            });
+        }
+        const card = document.getElementById("usercard");
+        const greeting = document.createElement("h3");
+        // Используем 'Гость' как запасной вариант, если имени нет даже в Telegram
+        const userName = user.first_name || 'Гость'
+        greeting.innerText = `👋 Приветствую, ${userName}!`;
+        greeting.style.textAlign = "center";
+        greeting.style.marginBottom = "10px";
+        card.appendChild(greeting);
+    });
+</script>
+
 </body>
 </html>
