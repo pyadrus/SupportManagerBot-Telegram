@@ -4,11 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель оператора</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com ">
+    <link rel="preconnect" href="https://fonts.gstatic.com " crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src=" https://telegram.org/js/telegram-web-app.js?58"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .dialog-link {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .dialog-link:hover {
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
 <div class="chat-container">
@@ -18,25 +57,16 @@
             <div id="usercard"></div>
         </div>
     </header>
-    <!--    Принимаем сообщения -->
-<div class="chat-box" id="chat-box">
-    {% for message in dialogs %}
-        <div class="message {{ 'user-message' if message['from_user'] else 'operator-message' }}">
-            <p>{{ message['text'] }}</p>
-            <span class="timestamp">{{ message['timestamp'].strftime('%H:%M') }}</span>
-        </div>
-    {% endfor %}
-</div>
 
-    <footer class="chat-footer">
-        <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
-        <button id="send-button">Отправить</button>
-    </footer>
+    <main class="dialogs-list">
+        <a href="/dialog/1" class="dialog-link">Диалог №1</a>
+        <a href="/dialog/2" class="dialog-link">Диалог №2</a>
+        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>
+    </main>
 </div>
-
 
 <script>
-    //кнопка назад
+    // Кнопка "Назад"
     const tg = window.Telegram.WebApp;
     tg.BackButton.show();
     tg.BackButton.onClick(() => {
@@ -91,6 +121,5 @@
         }
     });
 </script>
-
 </body>
 </html>

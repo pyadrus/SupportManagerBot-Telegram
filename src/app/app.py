@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from typing import Optional
-
+from fastapi.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi import Form
@@ -42,25 +42,23 @@ class UserID(BaseModel):
 
 
 @app.post("/api/set_user_id")
-async def set_user_id(request: Request, data: UserID):  # добавлен request
+async def set_user_id(request: Request, data: UserID):
     try:
         user_id = data.user_id
         logger.debug(f"Пользователь зашел с ID: {user_id}")
 
         appeal = get_appeal(operator_id=user_id)
         dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
-        for message in dialogs:
-            logger.debug(message)
 
-        return templates.TemplateResponse(
-            "operator.html",
-            {
-                "request": request,
-                "dialogs": dialogs
-            }
-        )
+        return JSONResponse({"dialogs": dialogs})
+
     except Exception as e:
         logger.exception(e)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/operator/dialogs", response_class=HTMLResponse)
+async def show_operator_dialogs(request: Request):
+    return templates.TemplateResponse("operator_dialogs.html", {"request": request})
 
 
 # === Страница администратора ===

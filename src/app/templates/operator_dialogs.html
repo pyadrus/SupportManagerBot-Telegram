@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,77 +7,150 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
-
+    <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
-
-
 </head>
-
 <body>
 <div class="chat-container">
     <header class="chat-header">
         <div class="header-content">
             <h1>eHukumat</h1>
-            <div id="requests-icon" class="requests-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                    <polyline points="13 2 13 9 20 9"></polyline>
-                </svg>
-                <span class="requests-count">3</span>
-            </div>
+            <div id="usercard"></div>
         </div>
-        <button id="logout-btn" class="logout-btn">Выход</button>
     </header>
+    <!--    Принимаем сообщения -->
     <div class="chat-box" id="chat-box">
-        <div class="message user-message">
-            <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
-            <span class="timestamp">14:25</span>
+        {% if dialogs %}
+        {% for message in dialogs %}
+        <div class="message">
+            {% if message.user_id %}
+            <strong>Пользователь:</strong> {{ message.message_text }}
+            {% elif message.operator_id %}
+            <strong>Оператор:</strong> {{ message.message_text }}
+            {% else %}
+            <strong>Неизвестный:</strong> {{ message.message_text }}
+            {% endif %}
         </div>
-        <div class="message operator-message">
-            <p>Добрый день! Слушаю вас.</p>
-            <span class="timestamp">14:26</span>
-        </div>
+        {% endfor %}
+        {% else %}
+        <p>Нет сообщений.</p>
+        {% endif %}
     </div>
+
     <footer class="chat-footer">
         <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
         <button id="send-button">Отправить</button>
     </footer>
 </div>
 
-<div id="requests-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Заявки в ожидании</h2>
-            <button class="back-button">&larr; Назад</button>
-        </div>
-        <div class="requests-list">
-            <div class="request-item">
-                <div class="request-details">
-                    <p><strong>Номер заявки:</strong> #1024</p>
-                    <p><strong>ФИО:</strong> Иванов Иван Иванович</p>
-                    <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
-                    <p><strong>Вопрос:</strong> Не могу отследить свой заказ.</p>
-                    <p><strong>Время:</strong> 14:30 18.06.2025</p>
-                </div>
-                <button class="accept-btn">Принять</button>
-            </div>
-            <div class="request-item">
-                <div class="request-details">
-                    <p><strong>Номер заявки:</strong> #1025</p>
-                    <p><strong>ФИО:</strong> Петрова Мария Сергеевна</p>
-                    <p><strong>Телефон:</strong> +7 (926) 765-43-21</p>
-                    <p><strong>Вопрос:</strong> Как вернуть товар?</p>
-                    <p><strong>Время:</strong> 14:32 18.06.2025</p>
-                </div>
-                <button class="accept-btn">Принять</button>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-<script src="/src/apprator.script.js"></script>
+        let user;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            user = tg.initDataUnsafe.user;
+            const userId = user.id;
+
+            // Отображаем приветствие
+            const card = document.getElementById("usercard");
+            const greeting = document.createElement("h3");
+            const userName = user.first_name || 'Гость';
+            greeting.innerText = `👋 Приветствую, ${userName}!`;
+            greeting.style.textAlign = "center";
+            greeting.style.marginBottom = "10px";
+            card.appendChild(greeting);
+
+            // Отправляем ID и загружаем сообщения
+            fetch("/api/set_user_id", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = "";
+                if (data.dialogs && data.dialogs.length > 0) {
+                    data.dialogs.forEach(msg => {
+                        const div = document.createElement("div");
+                        div.className = "message";
+                        const role = msg.user_id ? "Пользователь" :
+                        msg.operator_id ? "Оператор" : "Неизвестный";
+                        div.innerHTML = `<strong>${role}:</strong> ${msg.message_text}`;
+                        chatBox.appendChild(div);
+                    });
+                } else {
+                    chatBox.innerHTML = "<p>Нет сообщений.</p>";
+                }
+            })
+                .catch(error => {
+                console.error("Ошибка при получении сообщений:", error);
+            });
+        }
+    });
+</script>
+
+
+<script>
+    //кнопка назад
+    const tg = window.Telegram.WebApp;
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+        tg.expand(); // Убедимся, что expand() сработает
+        setTimeout(() => {
+            window.history.back();
+        }, 0);
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let user;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            user = tg.initDataUnsafe.user;
+            const userId = user.id;
+
+            // Отображаем кнопку назад
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+                tg.expand();
+                setTimeout(() => window.history.back(), 0);
+            });
+
+            // Отправляем ID пользователя на сервер, с помощью fetch
+            fetch("/api/set_user_id", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                console.log("ID успешно отправлен:", data);
+            })
+                .catch(error => {
+                console.error("Ошибка при отправке ID:", error);
+            });
+
+            // Показываем приветствие
+            const card = document.getElementById("usercard");
+            const greeting = document.createElement("h3");
+            const userName = user.first_name || 'Гость';
+            greeting.innerText = `👋 Приветствую, ${userName}!`;
+            greeting.style.textAlign = "center";
+            greeting.style.marginBottom = "10px";
+            card.appendChild(greeting);
+        }
+    });
+</script>
+
 </body>
-
 </html>
