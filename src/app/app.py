@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import uvicorn
+from fastapi import Body
 from fastapi import FastAPI, Request
 from fastapi import Form
 from fastapi.responses import HTMLResponse
@@ -16,6 +17,7 @@ from pydantic import BaseModel
 # тут ты можешь искать в базе данных, например:
 from src.core.database.database import get_all_authorization_data, get_appeal
 from src.core.database.dialogues import get_operator_dialog
+from src.core.database.operator_db import get_operator_table
 
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
@@ -38,6 +40,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
     202 - в обработке
     303 - перенаправление
     401 - не авторизован
+    405 - метод не поддерживается
 """
 
 
@@ -45,6 +48,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/operator", response_class=HTMLResponse)
 async def operator_page(request: Request):
+    """Переходим на страницу оператора"""
     return templates.TemplateResponse("operator.html", {
         "request": request,
     })
@@ -55,8 +59,23 @@ class UserID(BaseModel):
     user_id: int
 
 
+@app.post("/api/set_user_id_table")
+async def set_user_id_table(data: UserID = Body(...)):
+    """Получаем ID пользователя и возвращаем его в формате JSON"""
+    try:
+        user_id = data.user_id  # Получаем ID пользователя из запроса
+        logger.debug(f"Пользователь зашел с ID: {user_id}")  # Логируем ID
+
+        tables = get_operator_table(user_id)  # Получаем таблицу из базы данных
+        return JSONResponse({"tables": tables})  # Возвращаем таблицу в формате JSON
+    except Exception as e:
+        logger.exception(e)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 @app.post("/api/set_user_id")
 async def set_user_id(data: UserID):
+    """Получает ID пользователя и возвращает диалоги из базы данных"""
     try:
         user_id = data.user_id  # Получаем ID пользователя из запроса
         logger.debug(f"Пользователь зашел с ID: {user_id}")  # Логируем ID
@@ -73,6 +92,7 @@ async def set_user_id(data: UserID):
 
 @app.get("/operator/dialogs", response_class=HTMLResponse)
 async def show_operator_dialogs(request: Request):
+    """Переходим на страницу с диалогами оператора"""
     try:
         return templates.TemplateResponse("operator_dialogs.html", {"request": request})
     except Exception as e:

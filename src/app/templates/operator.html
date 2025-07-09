@@ -58,10 +58,16 @@
         </div>
     </header>
 
-    <main class="dialogs-list">
-        <a href="/dialog/1" class="dialog-link">Диалог №1</a>
-        <a href="/dialog/2" class="dialog-link">Диалог №2</a>
-        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>
+    <main class="dialogs-list" id="dialogs-list">
+        {% if tables %}
+        {% for table in tables %}
+        <a href="/operator/dialogs/{{ table }}" class="dialog-link">{{ table }}</a>
+        {% endfor %}
+        {% else %}
+        <p>Нет диалогов</p>
+        {% endif %}
+
+<!--        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>-->
     </main>
 </div>
 
@@ -95,7 +101,7 @@
             });
 
             // Отправляем ID пользователя на сервер, с помощью fetch
-            fetch("/api/set_user_id", {
+            fetch("/api/set_user_id_table", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -104,11 +110,21 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                console.log("ID успешно отправлен:", data);
+                const dialogsList = document.getElementById("dialogs-list");
+                dialogsList.innerHTML = "";
+
+                if (data.tables && data.tables.length > 0) {
+                    data.tables.forEach((table, index) => {
+                        const link = document.createElement("a");
+                        link.href = `/operator/dialogs/${encodeURIComponent(table)}`; // создаём ссылку с параметром
+                        link.className = "dialog-link";
+                        link.textContent = `Заявка #${table}`;
+                        dialogsList.appendChild(link);
+                    });
+                } else {
+                    dialogsList.innerHTML = "<p>Нет доступных таблиц.</p>";
+                }
             })
-                .catch(error => {
-                console.error("Ошибка при отправке ID:", error);
-            });
 
             // Показываем приветствие
             const card = document.getElementById("usercard");
