@@ -65,21 +65,27 @@
                 .then(data => {
                 const chatBox = document.getElementById("chat-box");
                 chatBox.innerHTML = "";
+
                 if (data.dialogs && data.dialogs.length > 0) {
                     data.dialogs.forEach(msg => {
                         const div = document.createElement("div");
-                        div.className = "message";
-                        const role = msg.user_id ? "Пользователь" :
-                        msg.operator_id ? "Оператор" : "Неизвестный";
-                        div.innerHTML = `<strong>${role}:</strong> ${msg.message_text}`;
+
+                        if (msg.user_id) {
+                            div.className = "message user-message";
+                            div.innerHTML = `<strong>Пользователь:</strong> ${msg.message_text}`;
+                        } else if (msg.operator_id) {
+                            div.className = "message operator-message";
+                            div.innerHTML = `<strong>Оператор:</strong> ${msg.message_text}`;
+                        } else {
+                            div.className = "message";
+                            div.innerHTML = `<strong>Неизвестный:</strong> ${msg.message_text}`;
+                        }
+
                         chatBox.appendChild(div);
                     });
                 } else {
                     chatBox.innerHTML = "<p>Нет сообщений.</p>";
                 }
-            })
-                .catch(error => {
-                console.error("Ошибка при получении сообщений:", error);
             });
         }
     });
