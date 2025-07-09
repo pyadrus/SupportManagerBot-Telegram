@@ -51,5 +51,4 @@ async def get_chat_completion(error):
         return answer
 
     except Exception as e:
-        logger.exception("Произошла ошибка при обращении к Groq API")
-        return "⚠️ Не удалось получить ответ от ИИ. Проверьте подключение и корректность данных."
+        logger.exception(f"Произошла ошибка при обращении к Groq API: {e}")

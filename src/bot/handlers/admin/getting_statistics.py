@@ -9,7 +9,6 @@ from src.bot.keyboards.admin_keyboards import admin_keyboard
 from src.bot.keyboards.user_keyboards import stat_period
 from src.bot.middlewares.middlewares import AdminFilter
 from src.bot.system.dispatcher import bot, router
-from src.core.ai.ai import get_chat_completion
 
 
 @router.callback_query(F.data == "statistic", AdminFilter())
@@ -117,7 +116,6 @@ async def statistics(call: CallbackQuery):
         await call.message.edit_text(text, reply_markup=admin_keyboard())
     except Exception as e:
         logger.exception(e)
-        await get_chat_completion(e)
 
 
 def register_handlers_getting_statistics():
