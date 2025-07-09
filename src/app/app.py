@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from typing import Optional
-from fastapi.responses import JSONResponse
+
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi import Form
 from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -26,6 +27,19 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Путь к шаблонам
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
+"""
+Коды ошибок:
+    404 - страница не найдена
+    500 - ошибка сервера
+    403 - запрещено
+    200 - все ок
+    201 - создано
+    204 - пусто
+    202 - в обработке
+    303 - перенаправление
+    401 - не авторизован
+"""
+
 
 # === Страница оператора ===
 
@@ -42,29 +56,36 @@ class UserID(BaseModel):
 
 
 @app.post("/api/set_user_id")
-async def set_user_id(request: Request, data: UserID):
+async def set_user_id(data: UserID):
     try:
-        user_id = data.user_id
-        logger.debug(f"Пользователь зашел с ID: {user_id}")
+        user_id = data.user_id  # Получаем ID пользователя из запроса
+        logger.debug(f"Пользователь зашел с ID: {user_id}")  # Логируем ID
 
-        appeal = get_appeal(operator_id=user_id)
+        appeal = get_appeal(operator_id=user_id)  # Получаем обращение по ID оператора
         dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
 
-        return JSONResponse({"dialogs": dialogs})
+        return JSONResponse({"dialogs": dialogs})  # Возвращаем диалоги в формате JSON
 
     except Exception as e:
-        logger.exception(e)
-        return JSONResponse({"error": str(e)}, status_code=500)
+        logger.exception(e)  # Логируем ошибку
+        return JSONResponse({"error": str(e)}, status_code=500)  # Возвращаем ошибку с кодом 500
+
 
 @app.get("/operator/dialogs", response_class=HTMLResponse)
 async def show_operator_dialogs(request: Request):
-    return templates.TemplateResponse("operator_dialogs.html", {"request": request})
+    try:
+        return templates.TemplateResponse("operator_dialogs.html", {"request": request})
+    except Exception as e:
+        logger.exception(e)
 
 
 # === Страница администратора ===
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_page(request: Request):
-    return templates.TemplateResponse("admin.html", {"request": request})
+    try:
+        return templates.TemplateResponse("admin.html", {"request": request})
+    except Exception as e:
+        logger.exception(e)
 
 
 # === Убираем /login, делаем всё на главной ===
@@ -76,10 +97,12 @@ async def login_page(request: Request, error: Optional[str] = None):
     Отображает форму авторизации на главной странице.
     """
     # Получаем данные авторизации из базы данных src/core/database/database.db
-
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "error": error}
-    )
+    try:
+        return templates.TemplateResponse(
+            "index.html", {"request": request, "error": error}
+        )
+    except Exception as e:
+        logger.exception(e)
 
 
 @app.post("/login")
