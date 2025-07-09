@@ -4,8 +4,9 @@ from typing import Optional
 
 import uvicorn
 from fastapi import Body
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi import Form
+from fastapi import Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
@@ -71,6 +72,20 @@ async def set_user_id_table(data: UserID = Body(...)):
     except Exception as e:
         logger.exception(e)
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/operator/dialogs/{appeal_id}", response_class=HTMLResponse)
+async def operator_dialog_by_id(request: Request, appeal_id: int, user_id: int = Query(...)):
+    try:
+        logger.debug(f"Оператор ID: {user_id}, обращение ID: {appeal_id}")
+        dialogs = get_operator_dialog(name_db=user_id, appeal_id=appeal_id)
+        return templates.TemplateResponse("operator_dialogs.html", {
+            "request": request,
+            "dialogs": dialogs
+        })
+    except Exception as e:
+        logger.exception(e)
+        return HTMLResponse("Ошибка при загрузке диалога", status_code=500)
 
 
 @app.post("/api/set_user_id")

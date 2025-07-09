@@ -61,13 +61,15 @@
     <main class="dialogs-list" id="dialogs-list">
         {% if tables %}
         {% for table in tables %}
-        <a href="/operator/dialogs/{{ table }}" class="dialog-link">{{ table }}</a>
+        <a href="/operator/dialogs/{{ table }}?user_id={{ operator_id }}" class="dialog-link">
+            Диалог №{{ table }}
+        </a>
         {% endfor %}
         {% else %}
         <p>Нет диалогов</p>
         {% endif %}
 
-<!--        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>-->
+        <!--        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>-->
     </main>
 </div>
 
@@ -116,7 +118,7 @@
                 if (data.tables && data.tables.length > 0) {
                     data.tables.forEach((table, index) => {
                         const link = document.createElement("a");
-                        link.href = `/operator/dialogs/${encodeURIComponent(table)}`; // создаём ссылку с параметром
+                        link.href = `/operator/dialogs/${encodeURIComponent(table)}?user_id=${userId}`; // создаём ссылку с параметром
                         link.className = "dialog-link";
                         link.textContent = `Заявка #${table}`;
                         dialogsList.appendChild(link);
