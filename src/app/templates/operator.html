@@ -18,23 +18,22 @@
             <div id="usercard"></div>
         </div>
     </header>
-
-    <div class="chat-box" id="chat-box">
-        <div class="message user-message">
-            <p>Здравствуйте! У меня вопрос по поводу доставки.</p>
-            <span class="timestamp">14:25</span>
+    <!--    Принимаем сообщения -->
+<div class="chat-box" id="chat-box">
+    {% for message in dialogs %}
+        <div class="message {{ 'user-message' if message['from_user'] else 'operator-message' }}">
+            <p>{{ message['text'] }}</p>
+            <span class="timestamp">{{ message['timestamp'].strftime('%H:%M') }}</span>
         </div>
-        <div class="message operator-message">
-            <p>Добрый день! Слушаю вас.</p>
-            <span class="timestamp">14:26</span>
-        </div>
-    </div>
+    {% endfor %}
+</div>
 
     <footer class="chat-footer">
         <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
         <button id="send-button">Отправить</button>
     </footer>
 </div>
+
 
 <script>
     //кнопка назад
@@ -65,7 +64,7 @@
                 setTimeout(() => window.history.back(), 0);
             });
 
-            // Отправляем ID пользователя на сервер
+            // Отправляем ID пользователя на сервер, с помощью fetch
             fetch("/api/set_user_id", {
                 method: "POST",
                 headers: {

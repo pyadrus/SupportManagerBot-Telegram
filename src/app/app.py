@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from typing import Optional
-
+from fastapi.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi import Form
@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from loguru import logger
 from pydantic import BaseModel
 
+from src.core.ai.ai import get_chat_completion
 # тут ты можешь искать в базе данных, например:
 from src.core.database.database import get_all_authorization_data, get_appeal
 from src.core.database.dialogues import get_operator_dialog
@@ -42,15 +43,25 @@ class UserID(BaseModel):
 
 
 @app.post("/api/set_user_id")
-async def set_user_id(data: UserID):
-    """Получение сообщений из базы данных"""
-    user_id = data.user_id
-    logger.debug(f"Пользователь зашел с ID: {user_id}")
+async def set_user_id(request: Request, data: UserID):  # добавлен request
+    try:
+        user_id = data.user_id
+        logger.debug(f"Пользователь зашел с ID: {user_id}")
 
-    appeal = get_appeal(operator_id=user_id)
-    dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
-    for message in dialogs:
-        logger.debug(message)
+        appeal = get_appeal(operator_id=user_id)
+        dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
+        for message in dialogs:
+            logger.debug(message)
+
+        return templates.TemplateResponse(
+            "operator.html",
+            {
+                "request": request,
+                "dialogs": dialogs
+            }
+        )
+    except Exception as e:
+        await get_chat_completion(e)
 
 
 # === Страница администратора ===
