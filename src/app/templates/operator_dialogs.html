@@ -53,15 +53,6 @@
             user = tg.initDataUnsafe.user;
             const userId = user.id;
 
-            // Отображаем приветствие
-            const card = document.getElementById("usercard");
-            const greeting = document.createElement("h3");
-            const userName = user.first_name || 'Гость';
-            greeting.innerText = `👋 Приветствую, ${userName}!`;
-            greeting.style.textAlign = "center";
-            greeting.style.marginBottom = "10px";
-            card.appendChild(greeting);
-
             // Отправляем ID и загружаем сообщения
             fetch("/api/set_user_id", {
                 method: "POST",
@@ -107,50 +98,50 @@
     });
 </script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+<!--<script>-->
+<!--    document.addEventListener("DOMContentLoaded", () => {-->
+<!--        const tg = window.Telegram.WebApp;-->
+<!--        tg.expand();-->
 
-        let user;
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            user = tg.initDataUnsafe.user;
-            const userId = user.id;
+<!--        let user;-->
+<!--        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {-->
+<!--            user = tg.initDataUnsafe.user;-->
+<!--            const userId = user.id;-->
 
-            // Отображаем кнопку назад
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                tg.expand();
-                setTimeout(() => window.history.back(), 0);
-            });
+<!--            // Отображаем кнопку назад-->
+<!--            tg.BackButton.show();-->
+<!--            tg.BackButton.onClick(() => {-->
+<!--                tg.expand();-->
+<!--                setTimeout(() => window.history.back(), 0);-->
+<!--            });-->
 
-            // Отправляем ID пользователя на сервер, с помощью fetch
-            fetch("/api/set_user_id", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                console.log("ID успешно отправлен:", data);
-            })
-                .catch(error => {
-                console.error("Ошибка при отправке ID:", error);
-            });
+<!--            // Отправляем ID пользователя на сервер, с помощью fetch-->
+<!--            fetch("/api/set_user_id", {-->
+<!--                method: "POST",-->
+<!--                headers: {-->
+<!--                    "Content-Type": "application/json"-->
+<!--                },-->
+<!--                body: JSON.stringify({ user_id: userId })-->
+<!--            })-->
+<!--                .then(response => response.json())-->
+<!--                .then(data => {-->
+<!--                console.log("ID успешно отправлен:", data);-->
+<!--            })-->
+<!--                .catch(error => {-->
+<!--                console.error("Ошибка при отправке ID:", error);-->
+<!--            });-->
 
-            // Показываем приветствие
-            const card = document.getElementById("usercard");
-            const greeting = document.createElement("h3");
-            const userName = user.first_name || 'Гость';
-            greeting.innerText = `👋 Приветствую, ${userName}!`;
-            greeting.style.textAlign = "center";
-            greeting.style.marginBottom = "10px";
-            card.appendChild(greeting);
-        }
-    });
-</script>
+<!--            // Показываем приветствие-->
+<!--            const card = document.getElementById("usercard");-->
+<!--            const greeting = document.createElement("h3");-->
+<!--            const userName = user.first_name || 'Гость';-->
+<!--            greeting.innerText = `👋 Приветствую, ${userName}!`;-->
+<!--            greeting.style.textAlign = "center";-->
+<!--            greeting.style.marginBottom = "10px";-->
+<!--            card.appendChild(greeting);-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
 
 </body>
 </html>
