@@ -47,12 +47,16 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # === Страница оператора ===
 
+
 @app.get("/operator", response_class=HTMLResponse)
 async def operator_page(request: Request):
     """Переходим на страницу оператора"""
-    return templates.TemplateResponse("operator.html", {
-        "request": request,
-    })
+    return templates.TemplateResponse(
+        "operator.html",
+        {
+            "request": request,
+        },
+    )
 
 
 # Модель запроса
@@ -75,14 +79,15 @@ async def set_user_id_table(data: UserID = Body(...)):
 
 
 @app.get("/operator/dialogs/{appeal_id}", response_class=HTMLResponse)
-async def operator_dialog_by_id(request: Request, appeal_id: int, user_id: int = Query(...)):
+async def operator_dialog_by_id(
+    request: Request, appeal_id: int, user_id: int = Query(...)
+):
     try:
         logger.debug(f"Оператор ID: {user_id}, обращение ID: {appeal_id}")
         dialogs = get_operator_dialog(name_db=user_id, appeal_id=appeal_id)
-        return templates.TemplateResponse("operator_dialogs.html", {
-            "request": request,
-            "dialogs": dialogs
-        })
+        return templates.TemplateResponse(
+            "operator_dialogs.html", {"request": request, "dialogs": dialogs}
+        )
     except Exception as e:
         logger.exception(e)
         return HTMLResponse("Ошибка при загрузке диалога", status_code=500)
@@ -96,13 +101,17 @@ async def set_user_id(data: UserID):
         logger.debug(f"Пользователь зашел с ID: {user_id}")  # Логируем ID
 
         appeal = get_appeal(operator_id=user_id)  # Получаем обращение по ID оператора
-        dialogs = get_operator_dialog(name_db=appeal["operator_id"], appeal_id=appeal["id"])
+        dialogs = get_operator_dialog(
+            name_db=appeal["operator_id"], appeal_id=appeal["id"]
+        )
 
         return JSONResponse({"dialogs": dialogs})  # Возвращаем диалоги в формате JSON
 
     except Exception as e:
         logger.exception(e)  # Логируем ошибку
-        return JSONResponse({"error": str(e)}, status_code=500)  # Возвращаем ошибку с кодом 500
+        return JSONResponse(
+            {"error": str(e)}, status_code=500
+        )  # Возвращаем ошибку с кодом 500
 
 
 @app.get("/operator/dialogs", response_class=HTMLResponse)
@@ -166,7 +175,9 @@ async def login(username: str = Form(...), password: str = Form(...)):
 
         # Если совпадений нет
         logger.warning("❌ Неверный логин или пароль")
-        return RedirectResponse(url="/?error=Неверный+логин+или+пароль", status_code=303)
+        return RedirectResponse(
+            url="/?error=Неверный+логин+или+пароль", status_code=303
+        )
     except Exception as e:
         logger.exception(e)
 

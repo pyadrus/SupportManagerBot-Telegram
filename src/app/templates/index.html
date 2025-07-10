@@ -126,70 +126,70 @@
 </head>
 
 <body>
-<div class="login-container">
+    <div class="login-container">
 
-    <div id="usercard"></div>
+        <div id="usercard"></div>
 
-    <h2>Авторизация</h2>
+        <h2>Авторизация</h2>
 
-    <!-- Сообщение об ошибке -->
-    {% if error %}
-    <div class="error-message">
-        {{ error }}
+        <!-- Сообщение об ошибке -->
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Форма отправки -->
+        <form method="POST" action="/login">
+            <div class="input-group">
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Войти</button>
+        </form>
     </div>
-    {% endif %}
 
-    <!-- Форма отправки -->
-    <form method="POST" action="/login">
-        <div class="input-group">
-            <label for="username">Логин</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        <div class="input-group">
-            <label for="password">Пароль</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button type="submit">Войти</button>
-    </form>
-</div>
-
-<script>
-    //кнопка назад
-    const tg = window.Telegram.WebApp;
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => {
-        tg.expand(); // Убедимся, что expand() сработает
-        setTimeout(() => {
-            window.history.back();
-        }, 0);
-    });
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
+    <script>
+        //кнопка назад
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        // --- МОДИФИЦИРОВАННЫЙ БЛОК ---
-        let user;
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            // Мы в Telegram, используем реальные данные
-            user = tg.initDataUnsafe.user;
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                tg.expand();
-                setTimeout(() => window.history.back(), 0);
-            });
-        }
-        const card = document.getElementById("usercard");
-        const greeting = document.createElement("h3");
-        // Используем 'Гость' как запасной вариант, если имени нет даже в Telegram
-        const userName = user.first_name || 'Гость'
-        greeting.innerText = `👋 Приветствую, ${userName}!`;
-        greeting.style.textAlign = "center";
-        greeting.style.marginBottom = "10px";
-        card.appendChild(greeting);
-    });
-</script>
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            tg.expand(); // Убедимся, что expand() сработает
+            setTimeout(() => {
+                window.history.back();
+            }, 0);
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            // --- МОДИФИЦИРОВАННЫЙ БЛОК ---
+            let user;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                // Мы в Telegram, используем реальные данные
+                user = tg.initDataUnsafe.user;
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    tg.expand();
+                    setTimeout(() => window.history.back(), 0);
+                });
+            }
+            const card = document.getElementById("usercard");
+            const greeting = document.createElement("h3");
+            // Используем 'Гость' как запасной вариант, если имени нет даже в Telegram
+            const userName = user.first_name || 'Гость'
+            greeting.innerText = `👋 Приветствую, ${userName}!`;
+            greeting.style.textAlign = "center";
+            greeting.style.marginBottom = "10px";
+            card.appendChild(greeting);
+        });
+    </script>
 
 
 </body>

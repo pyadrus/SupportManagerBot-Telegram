@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,100 +11,102 @@
     <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
+
 <body>
-<div class="chat-container">
-    <header class="chat-header">
-        <div class="header-content">
-            <h1>eHukumat</h1>
-            <div id="usercard"></div>
-        </div>
-    </header>
-    <!--    Принимаем сообщения -->
-    <div class="chat-box" id="chat-box">
-        {% if dialogs %}
-        {% for message in dialogs %}
-        <div class="message">
-            {% if message.user_id %}
-            <strong>Пользователь:</strong> {{ message.message_text }}
-            {% elif message.operator_id %}
-            <strong>Оператор:</strong> {{ message.message_text }}
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="header-content">
+                <h1>eHukumat</h1>
+                <div id="usercard"></div>
+            </div>
+        </header>
+        <!--    Принимаем сообщения -->
+        <div class="chat-box" id="chat-box">
+            {% if dialogs %}
+            {% for message in dialogs %}
+            <div class="message">
+                {% if message.user_id %}
+                <strong>Пользователь:</strong> {{ message.message_text }}
+                {% elif message.operator_id %}
+                <strong>Оператор:</strong> {{ message.message_text }}
+                {% else %}
+                <strong>Неизвестный:</strong> {{ message.message_text }}
+                {% endif %}
+            </div>
+            {% endfor %}
             {% else %}
-            <strong>Неизвестный:</strong> {{ message.message_text }}
+            <p>Нет сообщений.</p>
             {% endif %}
         </div>
-        {% endfor %}
-        {% else %}
-        <p>Нет сообщений.</p>
-        {% endif %}
+
+        <footer class="chat-footer">
+            <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
+            <button id="send-button">Отправить</button>
+        </footer>
     </div>
 
-    <footer class="chat-footer">
-        <input type="text" id="message-input" placeholder="Введите ваше сообщение...">
-        <button id="send-button">Отправить</button>
-    </footer>
-</div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+            let user;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                user = tg.initDataUnsafe.user;
+                const userId = user.id;
 
-        let user;
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            user = tg.initDataUnsafe.user;
-            const userId = user.id;
+                // Отправляем ID и загружаем сообщения
+                fetch("/api/set_user_id", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const chatBox = document.getElementById("chat-box");
+                        chatBox.innerHTML = "";
 
-            // Отправляем ID и загружаем сообщения
-            fetch("/api/set_user_id", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                const chatBox = document.getElementById("chat-box");
-                chatBox.innerHTML = "";
+                        if (data.dialogs && data.dialogs.length > 0) {
+                            data.dialogs.forEach(msg => {
+                                const div = document.createElement("div");
 
-                if (data.dialogs && data.dialogs.length > 0) {
-                    data.dialogs.forEach(msg => {
-                        const div = document.createElement("div");
+                                if (msg.user_id) {
+                                    div.className = "message user-message";
+                                    div.innerHTML = `<strong>Пользователь:</strong> ${msg.message_text}`;
+                                } else if (msg.operator_id) {
+                                    div.className = "message operator-message";
+                                    div.innerHTML = `<strong>Оператор:</strong> ${msg.message_text}`;
+                                } else {
+                                    div.className = "message";
+                                    div.innerHTML = `<strong>Неизвестный:</strong> ${msg.message_text}`;
+                                }
 
-                        if (msg.user_id) {
-                            div.className = "message user-message";
-                            div.innerHTML = `<strong>Пользователь:</strong> ${msg.message_text}`;
-                        } else if (msg.operator_id) {
-                            div.className = "message operator-message";
-                            div.innerHTML = `<strong>Оператор:</strong> ${msg.message_text}`;
+                                chatBox.appendChild(div);
+                            });
                         } else {
-                            div.className = "message";
-                            div.innerHTML = `<strong>Неизвестный:</strong> ${msg.message_text}`;
+                            chatBox.innerHTML = "<p>Нет сообщений.</p>";
                         }
-
-                        chatBox.appendChild(div);
                     });
-                } else {
-                    chatBox.innerHTML = "<p>Нет сообщений.</p>";
-                }
-            });
-        }
-    });
-</script>
+            }
+        });
+    </script>
 
 
-<script>
-    //кнопка назад
-    const tg = window.Telegram.WebApp;
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => {
-        tg.expand(); // Убедимся, что expand() сработает
-        setTimeout(() => {
-            window.history.back();
-        }, 0);
-    });
-</script>
+    <script>
+        //кнопка назад
+        const tg = window.Telegram.WebApp;
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            tg.expand(); // Убедимся, что expand() сработает
+            setTimeout(() => {
+                window.history.back();
+            }, 0);
+        });
+    </script>
 
 
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,95 +50,97 @@
         }
     </style>
 </head>
+
 <body>
-<div class="chat-container">
-    <header class="chat-header">
-        <div class="header-content">
-            <h1>eHukumat</h1>
-            <div id="usercard"></div>
-        </div>
-    </header>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="header-content">
+                <h1>eHukumat</h1>
+                <div id="usercard"></div>
+            </div>
+        </header>
 
-    <main class="dialogs-list" id="dialogs-list">
-        {% if tables %}
-        {% for table in tables %}
-        <a href="/operator/dialogs/{{ table }}?user_id={{ operator_id }}" class="dialog-link">
-            Диалог №{{ table }}
-        </a>
-        {% endfor %}
-        {% else %}
-        <p>Нет диалогов</p>
-        {% endif %}
+        <main class="dialogs-list" id="dialogs-list">
+            {% if tables %}
+            {% for table in tables %}
+            <a href="/operator/dialogs/{{ table }}?user_id={{ operator_id }}" class="dialog-link">
+                Диалог №{{ table }}
+            </a>
+            {% endfor %}
+            {% else %}
+            <p>Нет диалогов</p>
+            {% endif %}
 
-        <!--        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>-->
-    </main>
-</div>
+            <!--        <a href="/operator/dialogs" class="dialog-link">Диалог №3</a>-->
+        </main>
+    </div>
 
-<script>
-    // Кнопка "Назад"
-    const tg = window.Telegram.WebApp;
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => {
-        tg.expand(); // Убедимся, что expand() сработает
-        setTimeout(() => {
-            window.history.back();
-        }, 0);
-    });
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
+    <script>
+        // Кнопка "Назад"
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            tg.expand(); // Убедимся, что expand() сработает
+            setTimeout(() => {
+                window.history.back();
+            }, 0);
+        });
+    </script>
 
-        let user;
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            user = tg.initDataUnsafe.user;
-            const userId = user.id;
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
 
-            // Отображаем кнопку назад
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                tg.expand();
-                setTimeout(() => window.history.back(), 0);
-            });
+            let user;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                user = tg.initDataUnsafe.user;
+                const userId = user.id;
 
-            // Отправляем ID пользователя на сервер, с помощью fetch
-            fetch("/api/set_user_id_table", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                const dialogsList = document.getElementById("dialogs-list");
-                dialogsList.innerHTML = "";
+                // Отображаем кнопку назад
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    tg.expand();
+                    setTimeout(() => window.history.back(), 0);
+                });
 
-                if (data.tables && data.tables.length > 0) {
-                    data.tables.forEach((table, index) => {
-                        const link = document.createElement("a");
-                        link.href = `/operator/dialogs/${encodeURIComponent(table)}?user_id=${userId}`; // создаём ссылку с параметром
-                        link.className = "dialog-link";
-                        link.textContent = `Заявка #${table}`;
-                        dialogsList.appendChild(link);
-                    });
-                } else {
-                    dialogsList.innerHTML = "<p>Нет доступных таблиц.</p>";
-                }
-            })
+                // Отправляем ID пользователя на сервер, с помощью fetch
+                fetch("/api/set_user_id_table", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const dialogsList = document.getElementById("dialogs-list");
+                        dialogsList.innerHTML = "";
 
-            // Показываем приветствие
-            const card = document.getElementById("usercard");
-            const greeting = document.createElement("h3");
-            const userName = user.first_name || 'Гость';
-            greeting.innerText = `👋 Приветствую, ${userName}!`;
-            greeting.style.textAlign = "center";
-            greeting.style.marginBottom = "10px";
-            card.appendChild(greeting);
-        }
-    });
-</script>
+                        if (data.tables && data.tables.length > 0) {
+                            data.tables.forEach((table, index) => {
+                                const link = document.createElement("a");
+                                link.href = `/operator/dialogs/${encodeURIComponent(table)}?user_id=${userId}`; // создаём ссылку с параметром
+                                link.className = "dialog-link";
+                                link.textContent = `Заявка #${table}`;
+                                dialogsList.appendChild(link);
+                            });
+                        } else {
+                            dialogsList.innerHTML = "<p>Нет доступных таблиц.</p>";
+                        }
+                    })
+
+                // Показываем приветствие
+                const card = document.getElementById("usercard");
+                const greeting = document.createElement("h3");
+                const userName = user.first_name || 'Гость';
+                greeting.innerText = `👋 Приветствую, ${userName}!`;
+                greeting.style.textAlign = "center";
+                greeting.style.marginBottom = "10px";
+                card.appendChild(greeting);
+            }
+        });
+    </script>
 </body>
+
 </html>

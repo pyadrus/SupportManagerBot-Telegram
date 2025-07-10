@@ -311,85 +311,85 @@
 </head>
 
 <body>
-<div class="admin-container">
-    <header>
-        <h1>Панель Администратора</h1>
-        <button id="logout-btn" class="logout-btn">Выход</button>
-    </header>
+    <div class="admin-container">
+        <header>
+            <h1>Панель Администратора</h1>
+            <button id="logout-btn" class="logout-btn">Выход</button>
+        </header>
 
-    <main>
-        <section class="statistics">
-            <h2>📊 Общая статистика на <span id="current-datetime">00:00 00.00.0000</span></h2>
-            <ul>
-                <li>⏳ Заявок в ожидании: <span id="pending-requests">n/a</span></li>
-                <li>💬 Активных диалогов: <span id="active-chats">n/a</span></li>
-                <li>✅ Завершено обращений: <span id="completed-chats">n/a</span></li>
-                <li>📝 Всего обращений в системе: <span id="total-chats">n/a</span></li>
-            </ul>
-            <h3>Общая оценка услуг:</h3>
-            <ul>
-                <li>- Минимальная оценка: <span id="min-rating">n/a</span> ⭐️</li>
-                <li>- Максимальная оценка: <span id="max-rating">n/a</span> ⭐️</li>
-                <li>- Средняя оценка: <span id="avg-rating">n/a</span> ⭐️</li>
-            </ul>
-        </section>
-
-        <section class="controls">
-            <h2>Управление операторами</h2>
-            <button id="add-operator-btn">Добавить оператора</button>
-            <button id="show-stats-btn">Статистика операторов</button>
-        </section>
-    </main>
-</div>
-
-<div id="add-operator-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Новый оператор</h2>
-            <button class="back-button">&larr; Назад</button>
-        </div>
-        <div class="modal-body">
-            <form id="add-operator-form">
-                <input type="text" id="new-op-login" placeholder="Логин" required>
-                <input type="password" id="new-op-pass" placeholder="Пароль" required>
-                <button type="submit">Добавить</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div id="operators-list-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Список операторов</h2>
-            <button class="back-button">&larr; Назад</button>
-        </div>
-        <div class="modal-body">
-            <ul id="operators-list">
-            </ul>
-        </div>
-    </div>
-</div>
-
-<div id="personal-stats-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="personal-stats-title">Статистика оператора</h2>
-            <button class="back-button">&larr; Назад</button>
-        </div>
-        <div class="modal-body">
-            <div class="statistics">
+        <main>
+            <section class="statistics">
+                <h2>📊 Общая статистика на <span id="current-datetime">00:00 00.00.0000</span></h2>
                 <ul>
-                    <li>✅ Принято заявок: <span id="personal-accepted">n/a</span></li>
-                    <li>💬 Завершено диалогов: <span id="personal-completed">n/a</span></li>
-                    <li>⭐️ Средняя оценка: <span id="personal-rating">n/a</span></li>
+                    <li>⏳ Заявок в ожидании: <span id="pending-requests">n/a</span></li>
+                    <li>💬 Активных диалогов: <span id="active-chats">n/a</span></li>
+                    <li>✅ Завершено обращений: <span id="completed-chats">n/a</span></li>
+                    <li>📝 Всего обращений в системе: <span id="total-chats">n/a</span></li>
+                </ul>
+                <h3>Общая оценка услуг:</h3>
+                <ul>
+                    <li>- Минимальная оценка: <span id="min-rating">n/a</span> ⭐️</li>
+                    <li>- Максимальная оценка: <span id="max-rating">n/a</span> ⭐️</li>
+                    <li>- Средняя оценка: <span id="avg-rating">n/a</span> ⭐️</li>
+                </ul>
+            </section>
+
+            <section class="controls">
+                <h2>Управление операторами</h2>
+                <button id="add-operator-btn">Добавить оператора</button>
+                <button id="show-stats-btn">Статистика операторов</button>
+            </section>
+        </main>
+    </div>
+
+    <div id="add-operator-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Новый оператор</h2>
+                <button class="back-button">&larr; Назад</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-operator-form">
+                    <input type="text" id="new-op-login" placeholder="Логин" required>
+                    <input type="password" id="new-op-pass" placeholder="Пароль" required>
+                    <button type="submit">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="operators-list-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Список операторов</h2>
+                <button class="back-button">&larr; Назад</button>
+            </div>
+            <div class="modal-body">
+                <ul id="operators-list">
                 </ul>
             </div>
         </div>
     </div>
-</div>
 
-<script src="../static/admin.script.js"></script>
+    <div id="personal-stats-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="personal-stats-title">Статистика оператора</h2>
+                <button class="back-button">&larr; Назад</button>
+            </div>
+            <div class="modal-body">
+                <div class="statistics">
+                    <ul>
+                        <li>✅ Принято заявок: <span id="personal-accepted">n/a</span></li>
+                        <li>💬 Завершено диалогов: <span id="personal-completed">n/a</span></li>
+                        <li>⭐️ Средняя оценка: <span id="personal-rating">n/a</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/admin.script.js"></script>
 </body>
 
 </html>
